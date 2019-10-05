@@ -16,6 +16,8 @@ if (not gl) then
 	return
 end
 
+VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
+
 gl.Utilities = gl.Utilities or {}
 
 --------------------------------------------------------------------------------

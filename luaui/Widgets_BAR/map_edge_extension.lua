@@ -19,6 +19,8 @@ if VFS.FileExists("nomapedgewidget.txt") then
 	return
 end
 
+VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
+
 local spGetGroundHeight = Spring.GetGroundHeight
 local spTraceScreenRay = Spring.TraceScreenRay
 

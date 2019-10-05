@@ -12,6 +12,8 @@ function widget:GetInfo()
 	}
 end
 
+VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
+
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
@@ -108,15 +110,15 @@ end
 function widget:DrawWorld()
 	if chobbyInterface then return end
 	DrawBuildMenuBlastRange()
-	
+
 	--hardcoded: meta + X
 	local keyPressed = spGetKeyState( KEYSYMS.X )
 	local alt,ctrl,meta,shift = spGetModKeyState()
-		
+
 	if (meta and keyPressed) then
 		DrawBlastRadiusSelectedUnits()
 	end
-	
+
 	ResetGl()
 end
 
@@ -124,16 +126,16 @@ function ChangeBlastColor()
 	--cycle red/yellow
 	local time = spGetGameSeconds()
 	local timediff = ( time - lastColorChangeTime )
-		
-	local addValueSelf = timediff/ selfdCycleTime 	
-	local addValueExp = timediff/ expCycleTime 	
+
+	local addValueSelf = timediff/ selfdCycleTime
+	local addValueExp = timediff/ expCycleTime
 
 	if ( blastColor[2] >= 1.0 ) then
 		selfdCycleDir = false
 	elseif ( blastColor[2] <= 0.0 ) then
 		selfdCycleDir = true
 	end
-	
+
 	if ( expBlastColor[2] >= 1.0 ) then
 		expCycleDir = false
 	elseif ( expBlastColor[2] <= 0.0 ) then
@@ -147,7 +149,7 @@ function ChangeBlastColor()
 		blastColor[2] = blastColor[2] + addValueSelf
 		blastColor[2] = min( 1.0, blastColor[2] )
 	end
-	
+
 	if ( expCycleDir == false) then
 		expBlastColor[2] = expBlastColor[2] - addValueExp
 		expBlastColor[2] = max( 0.0, expBlastColor[2] )
@@ -155,64 +157,64 @@ function ChangeBlastColor()
 		expBlastColor[2] = expBlastColor[2] + addValueExp
 		expBlastColor[2] = min( 1.0, expBlastColor[2] )
 	end
-					
+
 	lastColorChangeTime = time
 end
 
 function DrawBuildMenuBlastRange()
 	--check if valid command
 	local idx, cmd_id, cmd_type, cmd_name = spGetActiveCommand()
-	
+
 	if (not cmd_id) then return end
 	--printDebug("Cmds: idx: " .. idx .. " cmd_id: " .. cmd_id .. " cmd_type: " .. cmd_type .. " cmd_name: " .. cmd_name )
-	
+
 	--check if META is pressed
 	--local keyPressed = spGetKeyState(KEYSYMS.X )
 	local alt,ctrl,meta,shift = spGetModKeyState()
-		
+
 	if ( not meta ) then --and keyPressed) then
 		return
 	end
-	
+
 	--check if build command
 	local cmdDesc = spGetActiveCmdDesc( idx )
-	
+
 	if ( cmdDesc["type"] ~= 20 ) then
 		--quit here if not a build command
 		return
 	end
-	
+
 	local unitDefID = -cmd_id
-		
+
 	local udef = udefTab[unitDefID]
 	if ( weapNamTab[lower(udef[explodeTag])] == nil ) then
 		return
 	end
-	
+
 	local deathBlasId = weapNamTab[lower(udef[explodeTag])].id
 	local blastRadius = weapTab[deathBlasId][aoeTag]
 	--local defaultDamage = weapTab[deathBlasId].damages[0]	--get default damage
-		
+
 	local mx, my = spGetMouseState()
 	local _, coords = spTraceScreenRay(mx, my, true, true)
-	
+
 	if not coords then return end
-		
+
 	local centerX = coords[1]
 	local centerZ = coords[3]
-		
+
 	centerX, _, centerZ = Spring.Pos2BuildPos( unitDefID, centerX, 0, centerZ )
- 
+
     glLineWidth(blastLineWidth)
 	glColor( expBlastColor[1], expBlastColor[2], expBlastColor[3], blastAlphaValue )
-	
+
 	--draw static ground circle
 	glDrawGroundCircle(centerX, 0, centerZ, blastRadius, blastCircleDivs )
 
 	--tidy up
 	glLineWidth(1)
 	glColor(1, 1, 1, 1)
-	
+
 	--cycle colors for next frame
 	ChangeBlastColor()
 end
@@ -220,25 +222,25 @@ end
 function DrawUnitBlastRadius( unitID )
 	local unitDefID =  spGetUnitDefID(unitID)
 	local udef = udefTab[unitDefID]
-						
+
 	local x, y, z = spGetUnitPosition(unitID)
-	
+
 	if ( weapNamTab[lower(udef[explodeTag])] ~= nil and weapNamTab[lower(udef[selfdTag])] ~= nil ) then
 		deathBlasId = weapNamTab[lower(udef[explodeTag])].id
 		blastId = weapNamTab[lower(udef[selfdTag])].id
 
 		blastRadius = weapTab[blastId][aoeTag]
 		deathblastRadius = weapTab[deathBlasId][aoeTag]
-						
+
 		blastDamage = weapTab[blastId].damages[0]
 		deathblastDamage = weapTab[deathBlasId].damages[0]
-					
+
 		local height = Spring.GetGroundHeight(x,z)
-					
+
 		glLineWidth(blastLineWidth)
 		glColor( blastColor[1], blastColor[2], blastColor[3], blastAlphaValue)
 		glDrawGroundCircle( x,y,z, blastRadius, blastCircleDivs )
-				
+
 		glPushMatrix()
 		glTranslate(x - ( blastRadius / 1.5 ), height , z  + ( blastRadius / 1.5 ) )
 		glBillboard()
@@ -249,7 +251,7 @@ function DrawUnitBlastRadius( unitID )
 
 		font:Begin()
 		font:Print( text, 0.0, 0.0, sqrt(blastRadius) , "")
-		glPopMatrix()  
+		glPopMatrix()
 
 		if ( deathblastRadius ~= blastRadius ) then
 			glColor( expBlastColor[1], expBlastColor[2], expBlastColor[3], expBlastAlphaValue)
@@ -259,7 +261,7 @@ function DrawUnitBlastRadius( unitID )
 			glTranslate(x - ( deathblastRadius / 1.6 ), height , z  + ( deathblastRadius / 1.6) )
 			glBillboard()
 			font:Print("EXPLODE" , 0.0, 0.0, sqrt(deathblastRadius), "cn")
-			glPopMatrix()  
+			glPopMatrix()
 		end
 		font:End()
 	end
@@ -271,7 +273,7 @@ end
 
 function DrawBlastRadiusSelectedUnits()
 	glLineWidth(blastLineWidth)
-        
+
 	local deathBlasId
 	local blastId
 	local blastRadius
@@ -282,12 +284,12 @@ function DrawBlastRadiusSelectedUnits()
 	for i,unitID in ipairs(selectedUnits) do
 		DrawUnitBlastRadius( unitID )
 	end
-	  
+
 	ChangeBlastColor()
 end
 
 --Commons
-function ResetGl() 
+function ResetGl()
 	glColor( { 1.0, 1.0, 1.0, 1.0 } )
 	glLineWidth( 1.0 )
 	glDepthTest(false)
@@ -301,8 +303,8 @@ function printDebug( value )
 				else spEcho("false") end
 		elseif ( type(value ) == "table" ) then
 			spEcho("Dumping table:")
-			for key,val in pairs(value) do 
-				spEcho(key,val) 
+			for key,val in pairs(value) do
+				spEcho(key,val)
 			end
 		else
 			spEcho( value )

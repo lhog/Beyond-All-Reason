@@ -12,6 +12,8 @@ if addon.InGetInfo then
 	}
 end
 
+VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
+
 ------------------------------------------
 
 local a = 0

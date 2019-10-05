@@ -17,6 +17,8 @@ end
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
+VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
+
 -- speed-ups
 local GetUnitDefID         = Spring.GetUnitDefID
 local GetUnitExperience    = Spring.GetUnitExperience

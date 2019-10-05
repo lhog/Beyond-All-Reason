@@ -18,6 +18,8 @@ end
 1.3: removed features, handles substitutions
 --]]
 
+VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
+
 local lastUpdate
 local ghostSites = {}
 
@@ -50,8 +52,8 @@ function widget:Update()
     local curTime = Spring.GetTimer()
     lastUpdate = lastUpdate or Spring.GetTimer()
 
-	-- check ghost sites for deletion 
-	if Spring.DiffTimers(curTime,lastUpdate)>1 then	
+	-- check ghost sites for deletion
+	if Spring.DiffTimers(curTime,lastUpdate)>1 then
 		DeleteGhostSites()
         lastUpdate = curTime
 	end
@@ -70,12 +72,12 @@ function widget:UnitEnteredLos(unitID, teamID)
 
     local uDID = spGetUnitDefID(unitID)
 	local uDef = UnitDefs[uDID]
-		
+
 	if uDef.isBuilding==true and spGetUnitRulesParam(unitID,"under_construction")==1 then
 		local x, y, z = spGetUnitBasePosition(unitID)
 		local dx,_,dz = spGetUnitDirection(unitID)
-		local angle = mdeg(matan2(dx,dz))	
-		
+		local angle = mdeg(matan2(dx,dz))
+
 		ghostSites[unitID] = {uDID=uDID, x=x, y=y, z=z, teamID=teamID, angle=angle}
 	end
 end
@@ -87,11 +89,11 @@ function DrawGhostSites()
 	for unitID, ghost in pairs( ghostSites ) do
 		local x,y,z = ghost.x,ghost.y,ghost.z
 		local _,inLos,_ = spGetPositionLosState(x,y,z)
-	
+
 		if not inLos then
 			--glow effect?
 			--gl.Blending(GL.SRC_ALPHA, GL.ONE)
-            
+
 			glPushMatrix()
 				glLoadIdentity()
             	glTranslate( x, y, z)
@@ -107,14 +109,14 @@ function DeleteGhostSites()
 		local _,inLos,_ = spGetPositionLosState(ghost.x, ghost.y, ghost.z)
         local alive = spValidUnitID(unitID) and spGetUnitDefID(unitID)==ghost.uDID
         local built = spGetUnitRulesParam(unitID,"under_construction")~=1
-		
-		if (not alive) or built or inLos then	
+
+		if (not alive) or built or inLos then
 			ghostSites[unitID] = nil
 		end
 	end
 end
 
-function ResetGl() 
+function ResetGl()
 	glColor( { 1.0, 1.0, 1.0, 1.0 } )
 	glDepthTest(false)
 	glTexture(false)

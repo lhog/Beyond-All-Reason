@@ -11,7 +11,6 @@ function gadget:GetInfo()
   }
 end
 
-
 --include("LuaRules/Configs/customcmds.h.lua")
 
 local CMD_UNIT_SET_TARGET_NO_GROUND = 34922
@@ -622,6 +621,8 @@ end
 else -- UNSYNCED
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
 
 local glVertex 		= gl.Vertex
 local glPushAttrib	= gl.PushAttrib

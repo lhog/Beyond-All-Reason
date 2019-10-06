@@ -7,7 +7,7 @@ function widget:GetInfo()
     date      = "29 may 2015",
     license   = "GNU GPL, v2 or later",
     layer     = -24,
-    enabled   = true  --  loaded by default?
+    enabled = false  --  loaded by default?
   }
 end
 
@@ -339,7 +339,7 @@ function widget:Initialize()
 	WG['snow'].setAutoReduce = function(value)
 		autoReduce = value
 		if autoReduce == false then
-			enabled = true
+			enabled = false
 			particleStep = particleSteps
 			widgetDisabledSnow = false
 		else
@@ -379,7 +379,7 @@ function widget:Initialize()
 	local keywordFound = false
 	for _,keyword in pairs(snowKeywords) do
 		if string.find(currentMapname, keyword) then
-			enabled = true
+			enabled = false
 			keywordFound = true
 			break
 		end
@@ -387,7 +387,7 @@ function widget:Initialize()
 	-- check for remembered snow state
 	if snowMaps[currentMapname] ~= nil then
 		if snowMaps[currentMapname] == true then
-			enabled = true
+			enabled = false
 		elseif snowMaps[currentMapname] == false then
 			enabled = false
 		end
@@ -441,7 +441,7 @@ function widget:GameFrame(gameFrame)
 						if particleDensity > particleDensityMax then particleDensity = particleDensityMax end
 						particleStep = math.floor(particleDensity / (particleDensityMax / particleSteps))
 						if particleStep < 1 then particeStep = 1 end
-						enabled = true
+						enabled = false
 						widgetDisabledSnow = false
 					end
 				end
@@ -586,7 +586,7 @@ function widget:TextCommand(command)
     if (string.find(command, "snow") == 1  and  string.len(command) == 4) then
 		if snowMaps[currentMapname] == nil or snowMaps[currentMapname] == false then
 			snowMaps[currentMapname] = true
-			enabled = true
+			enabled = false
 			Spring.Echo("Snow widget: snow enabled for this map. (Snow wont show when average fps is below "..minFps..".)")
 			init()
 		else

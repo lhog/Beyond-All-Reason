@@ -10,7 +10,7 @@ function widget:GetInfo()
     date      = "May 04, 2008",
     license   = "GNU GPL, v2 or later",
     layer     = -9, 
-    enabled   = true  --  loaded by default?
+    enabled = false  --  loaded by default?
   }
 end
 
@@ -395,7 +395,7 @@ function widget:GameFrame(n)
     UpdateRules()
 
     if (not enabled and n > 1) then
-      enabled = true
+      enabled = false
     end
 --	
 --    queenAnger = math.ceil((((GetGameSeconds()-gameInfo.gracePeriod+gameInfo.queenAnger)/(gameInfo.queenTime-gameInfo.gracePeriod))*100) -0.5)

@@ -6,7 +6,7 @@ return {
 	author  = "Floris",
 	date    = "September 2016",
 	layer   = 20000,
-	enabled = true,
+	enabled = false,
 	handler = true,
 }
 end

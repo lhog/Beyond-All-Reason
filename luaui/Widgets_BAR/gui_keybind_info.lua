@@ -7,7 +7,7 @@ return {
 	date    = "April 2015",
 	license = "Mouthwash",
 	layer   = -99990,
-	enabled = true,
+	enabled = false,
 }
 end
 

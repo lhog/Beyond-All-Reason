@@ -17,7 +17,7 @@ local floor = math.floor
 ------------------------------------------------
 -- Variables
 ------------------------------------------------
-local enabled = true
+local enabled = false
 local markers = {}
 local mexIndex = 1
 local metal = 2.0

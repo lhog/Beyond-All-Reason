@@ -7,7 +7,7 @@ function widget:GetInfo()
         license   = "GPL v3 or later",
         license   = "GPL v3 or later",
         layer     = 0,
-        enabled   = true  -- loaded by default
+        enabled = false  -- loaded by default
     }
 end
 

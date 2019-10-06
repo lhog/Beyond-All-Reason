@@ -17,6 +17,8 @@ function pwl() -- ???  (print widget list)
   end
 end
 
+VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
+
 
 include("keysym.h.lua")
 include("utils.lua")
@@ -25,7 +27,7 @@ include("callins.lua")
 include("savetable.lua")
 
 Spring.Utilities = {}
-VFS.Include("LuaRules/Utilities/tablefunctions.lua")
+--VFS.Include("LuaRules/Utilities/tablefunctions.lua")
 
 
 local gl = gl

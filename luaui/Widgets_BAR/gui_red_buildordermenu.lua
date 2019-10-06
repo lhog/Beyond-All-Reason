@@ -8,7 +8,7 @@ function widget:GetInfo()
 	date      = "29 may 2015", --modified by CommonPlayer, Oct 2016
 	license   = "GNU GPL, v2 or later",
 	layer     = -10,
-	enabled   = true, --enabled by default
+	enabled = false, --enabled by default
 	handler   = true, --can use widgetHandler:x()
 	}
 end

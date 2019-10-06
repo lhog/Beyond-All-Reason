@@ -60,7 +60,7 @@ local noOfIcons = 0
 local displayList = {}
 
 local spGetSpectatingState = Spring.GetSpectatingState
-local enabled = true
+local enabled = false
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -163,7 +163,7 @@ end
 
 function widget:Initialize()
 	widget:PlayerChanged()
-	enabled = true
+	enabled = false
 	if not enabledAsSpec then
 		enabled = not spGetSpectatingState()
 	end

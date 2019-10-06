@@ -3,19 +3,21 @@
 local isDevelop = gl.CreateVertexArray ~= nil
 
 if isDevelop then
+-----------------------------------------------------------------
+-- Develop
+-----------------------------------------------------------------
+
 
 local orig = {
-	Color = gl.Color,
+	Vertex = gl.Vertex,
 	BeginEnd = gl.BeginEnd,
-	TexCoord = gl.TexCoord,
-	Normal = gl.Normal,
+	Color = gl.Color,
+	UseShader = gl.UseShader,
+	ActiveShader = gl.ActiveShader,
 }
 
 local inBeginEnd = false
-
-local currColor = {1, 1, 1, 1}
-local currNormal = {1, 1, 1}
-local currTexCoord = {0, 0, 0, 0}
+local vertexCounter = 0
 
 gl.CreateList = function(functionName, ...)
 	return {
@@ -60,39 +62,115 @@ gl.AlphaTest = function(arg1, arg2)
 	-- Not Implemented
 end
 
-gl.BeginEnd = function(glType, ...)
+gl.Vertex = function(arg1, arg2, arg3, arg4)
+	vertexCounter = vertexCounter + 1
+	orig.Vertex(arg1, arg2, arg3, arg4)
+end
+
+local currentColor = {0, 0, 0, 0, 0, 0, 0}
+gl.Color = function(r, g, b, a)
+	if type(r) == "table" then
+		local primColor = unpack(r)
+		currentColor[1] = primColor[1]
+		currentColor[2] = primColor[2]
+		currentColor[3] = primColor[3]
+		currentColor[4] = primColor[4]
+	else
+		currentColor[1] = r
+		currentColor[2] = g
+		currentColor[3] = b
+		currentColor[4] = a
+	end
+
+	orig.Color(
+		currentColor[1],
+		currentColor[2],
+		currentColor[3],
+		currentColor[4],
+		currentColor[5],
+		currentColor[6],
+		currentColor[7])
+end
+
+gl.SecondaryColor = function(r, g, b)
+	currentColor[5] = r
+	currentColor[6] = g
+	currentColor[7] = b
+end
+
+local customShader = false
+UseShader = function(shaderID)
+	if shaderID == 0 then
+		customShader = false
+	else
+		customShader = true
+	end
+	orig.UseShader(shaderID)
+end
+
+ActiveShader = function(shaderID, glFunc, ...)
+	if shaderID == 0 then
+		customShader = false
+	else
+		customShader = true
+	end
+	orig.ActiveShader(shaderID, glFunc, ...)
+end
+
+
+local vertIndices = {}
+local function UpdateVertexIndicesForQuad()
+	vertIndices = {}
+	local quadsCount = math.floor(vertexCounter / 4)
+	for quad = 0, quadsCount - 1 do
+		-- Upper triangle of QUAD
+		table.insert(vertIndices, 4 * quad + 0) --tl
+		table.insert(vertIndices, 4 * quad + 1) --tr
+		table.insert(vertIndices, 4 * quad + 2) --br
+
+		-- Lower triangle of QUAD
+		table.insert(vertIndices, 4 * quad + 2) --br
+		table.insert(vertIndices, 4 * quad + 3) --bl
+		table.insert(vertIndices, 4 * quad + 0) --tl
+	end
+	
+	gl.VertexIndices(vertIndices)
+end
+
+local GL_QUADS = GL.QUADS
+local GL_TRIANGLES = GL.TRIANGLES
+gl.BeginEnd = function(glType, glFuncInput, ...)
 	inBeginEnd = true
-	orig.BeginEnd(glType, ...)
+	vertexCounter = 0
+
+	local glQuads = false
+	local glCallFunc
+
+	if glType == GL_QUADS then
+		glQuads = true
+		glType = GL_TRIANGLES
+		glCallFunc = function(...)
+			glFuncInput(...)
+			UpdateVertexIndicesForQuad()
+		end
+	else
+		glCallFunc = glFuncInput
+	end
+
+	orig.BeginEnd(glType, glCallFunc, ...)
+
+	vertexCounter = 0
 	inBeginEnd = false
 end
 
-gl.Color = function(r, g, b, a)
-	if inBeginEnd then
-		orig.Color(r, g, b, a)
-	else
-		currColor = {r, g, b, a}
-	end
+gl.Shape = function(glType, shapeArray)
+	--Spring.Echo("gl.Shape")
 end
 
-gl.Normal = function(x, y, z)
-	if inBeginEnd then
-		orig.Normal(x, y, z)
-	else
-		currNormal = {x, y, z}
-	end
-end
-
-gl.TexCoord = function(x, y, z, w)
-	if inBeginEnd then
-		orig.TexCoord(x, y, z, w)
-	else
-		currTexCoord = {x, y, z, w}
-	end
-end
-
-
-else -- Maintenance
-
+-----------------------------------------------------------------
+-- Maintenance
+-----------------------------------------------------------------
+else
 
 
 

@@ -19,7 +19,7 @@ function widget:GetInfo()
     date         = "May 2018",
     license      = "GPL",
     layer        = 50,
-    enabled      = true
+    enabled = false
   }
 end
 

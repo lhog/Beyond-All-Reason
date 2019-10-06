@@ -9,16 +9,16 @@ function widget:GetInfo()
 		date      = "Feb 14, 2010",
 		license   = "GNU GPL, v2 or later",
 		layer     = -1,
-		enabled   = true  --  loaded by default?
+		enabled = false  --  loaded by default?
 	}
 end
 
-local enabled = true
+local enabled = false
 local function CheckEnable()
 	if Spring.GetSpectatingState() then
 		enabled = false
 	else
-		enabled = true
+		enabled = false
 	end
 end
 

@@ -10,7 +10,7 @@ function widget:GetInfo()
 		date      = "October 21, 2007",
 		license   = "GNU GPL v2",
 		layer     = -100,
-		enabled   = true
+		enabled = false
 	}
 end
 
@@ -260,7 +260,7 @@ function widget:TextCommand(command)
 			rangetype='nuke'
 		end
 		if (string.find(command, "+")) then 
-			enabled=true
+			enabled = false
 		end
 		buttonConfig["enabled"][ally][rangetype]=enabled
 		Spring.Echo("Range visibility of "..ally.." "..rangetype.." defenses set to",enabled)

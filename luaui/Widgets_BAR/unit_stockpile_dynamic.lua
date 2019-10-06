@@ -23,7 +23,7 @@ function widget:GetInfo()
     date      = "tomorrow",
     license   = "WTFPL",
     layer     = 0,
-    enabled   = true,  --  loaded by default?
+    enabled = false,  --  loaded by default?
   }
 end
 

@@ -91,41 +91,105 @@ function RectRound(px,py,sx,sy,cs)
 
 end
 
+local vao = nil
+
 function widget:DrawScreenEffects()
-	local px, py, sx, sy, cs = 100, 100, 300, 300, 5
+	local px, py, sx, sy, cs = 100, 100, 300, 300, 8
 	--RectRound(px,py,sx,sy,cs)
 
-	local x1, y1, x2, y2 = 0, 0, 1000, 1000
+--[[
+	gl.BeginEnd(GL.QUADS, function()
+		local x1, y1, x2, y2 = 0, 0, 100, 1000
+
+		gl.Color(0, 1, 0, 1)
+		gl.TexCoord(0, 0)
+		gl.Vertex(x1, y1)
+
+		--gl.Color(0, 0.5, 0, 1)
+		gl.TexCoord(1, 0)
+		gl.Vertex(x2, y1)
+
+		--gl.Color(0, 0, 0.5, 1)
+		gl.TexCoord(1, 1)
+		gl.Vertex(x2, y2)
+
+		--gl.Color(1, 1, 1, 1)
+		gl.TexCoord(0, 1)
+		gl.Vertex(x1, y2)
+	end)
+]]--
 
 	gl.BeginEnd(GL.QUADS, function()
+		local x1, y1, x2, y2 = 0, 0, 1000, 100
 
 		gl.Color(1, 0, 0, 1)
 		gl.TexCoord(0, 0)
 		gl.Vertex(x1, y1)
 
-		gl.Color(1, 0, 0, 1)
+		--gl.Color(0, 0.5, 0, 1)
 		gl.TexCoord(1, 0)
 		gl.Vertex(x2, y1)
 
-		gl.Color(1, 0, 0, 1)
+		--gl.Color(0, 0, 0.5, 1)
 		gl.TexCoord(1, 1)
 		gl.Vertex(x2, y2)
 
-		gl.Color(1, 0, 0, 1)
+		--gl.Color(1, 1, 1, 1)
 		gl.TexCoord(0, 1)
 		gl.Vertex(x1, y2)
 
 	end)
 
-	--gl.TexRect(x1, y1, x2, y2)
+
+
+--[[	vao = gl.CreateVertexArray(4, 6)
+	gl.UpdateVertexArray(vao, 0, 0,
+	{
+		p  = {x1, y1, 0, 1, x2, y1, 0, 1, x2, y2, 0, 1, x1, y2, 0, 1},
+		c0 = {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1},
+		i  = {0, 1, 2, 2, 3, 0},
+	})
+	gl.RenderVertexArray(vao, GL.TRIANGLES)
+	gl.DeleteVertexArray(vao)
+	vao = nil
+	]]--
+
+	local x1, y1, x2, y2 = -1, -1, 1, 1
+	--math.randomseed(os.time())
+
+	local a1 = (math.random() > 0.5) and 1.0 or 0.0
+	local a2 = (math.random() > 0.5) and 1.0 or 0.0
+	local a3 = (math.random() > 0.5) and 1.0 or 0.0
+	local a4 = (math.random() > 0.5) and 1.0 or 0.0
+
+	vao = vao or gl.CreateVertexArray(4, 6)
+	gl.UpdateVertexArray(vao, 0, 0,
+	{
+		p  = {x1, y1, 0, 1, x2, y1, 0, 1, x2, y2, 0, 1, x1, y2, 0, 1},
+		c0 = {
+			a1, 1, 1, 1,
+			1, a2, 1, 1,
+			1, 1, a3, 1,
+			a1, a2, a3, 1
+			},
+		i  = {0, 1, 2, 2, 3, 0},
+	})
+	gl.RenderVertexArray(vao, GL.TRIANGLES)
+
+	--gl.DeleteVertexArray(vao)
+
+--	gl.Color(1, 0, 0, 1)
+--	gl.Rect(x1, y1, x2, y2)
 
 end
 
-function widget:DrawScreen()
+
+
+--function widget:DrawScreen()
 
 	--Spring.Echo(widget:GetInfo().name, "DrawWorld")
 
-	local x1, y1, x2, y2 = 0, 0, 1000, 1000
+	--local x1, y1, x2, y2 = 0, 0, 1000, 1000
 	--local x1, y1, x2, y2 = 0, 0, 0.5, 0.5
 --[[
 	gl.BeginEnd(GL.QUADS, function()
@@ -159,6 +223,7 @@ function widget:DrawScreen()
 	})
 	gl.RenderVertexArray(vao, GL.TRIANGLES)
 	gl.DeleteVertexArray(vao)
+	vao = nil
 ]]--
 
 --[[
@@ -191,4 +256,9 @@ function widget:DrawScreen()
 	end)
 ]]--
 
+--end
+
+
+function widget:Shutdown()
+	if vao then gl.DeleteVertexArray(vao) end
 end

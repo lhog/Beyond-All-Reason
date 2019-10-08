@@ -14,6 +14,8 @@ local orig = {
 	Color = gl.Color,
 	UseShader = gl.UseShader,
 	ActiveShader = gl.ActiveShader,
+	TexRect = gl.TexRect,
+	Rect = gl.Rect,
 }
 
 local inBeginEnd = false
@@ -98,23 +100,26 @@ gl.SecondaryColor = function(r, g, b)
 	currentColor[7] = b
 end
 
-local customShader = false
+local activeShader = 0
 UseShader = function(shaderID)
 	if shaderID == 0 then
-		customShader = false
+		activeShader = 0
 	else
-		customShader = true
+		 --don't care if shader is wrong, it's only for bookkeeping purpose
+		activeShader = shaderID
 	end
 	orig.UseShader(shaderID)
 end
 
 ActiveShader = function(shaderID, glFunc, ...)
 	if shaderID == 0 then
-		customShader = false
-	else
-		customShader = true
+		activeShader = 0
+		return
 	end
+
+	activeShader = shaderID
 	orig.ActiveShader(shaderID, glFunc, ...)
+	activeShader = 0
 end
 
 
@@ -133,8 +138,46 @@ local function UpdateVertexIndicesForQuad()
 		table.insert(vertIndices, 4 * quad + 3) --bl
 		table.insert(vertIndices, 4 * quad + 0) --tl
 	end
-	
+
 	gl.VertexIndices(vertIndices)
+end
+
+
+local vertexTypes = {
+	"VA_TYPE_0", -- p
+	"VA_TYPE_C", -- p, c
+	"VA_TYPE_T", -- p, st
+	"VA_TYPE_T4", -- p, uvwz
+	"VA_TYPE_TN", -- p, st, n
+	"VA_TYPE_TC", -- p, st, c
+	"VA_TYPE_2D0", -- x, y
+	"VA_TYPE_2DT", -- x, y, st
+	"VA_TYPE_2DTC", -- x, y, st, c
+	"VA_TYPE_L", -- p, n, uvwz, c0, c1
+}
+
+local defaultShaders = {}
+local function CompileDefaultShader(shType)
+	local shaderSrc = gl.GetDefaultShaderSources(shType)
+	Spring.Echo("shaderSrc", shaderSrc)
+	for k, v in pairs(shaderSrc) do
+		Spring.Echo(k, v)
+	end
+end
+
+local function CondEnableDisableDefaultShaders(shType, glCallFunc, ...)
+	if activeShader ~= 0 then --someone else activated non-default shader
+		glCallFunc(...)
+		return
+	end
+
+	if not defaultShaders[shType] then
+		defaultShaders[shType] = CompileDefaultShader(shType)
+	end
+
+	activeShader = defaultShaders[shType]
+	--orig.ActiveShader(defaultShaders[shType], glCallFunc, ...)
+	activeShader = 0
 end
 
 local GL_QUADS = GL.QUADS
@@ -157,14 +200,27 @@ gl.BeginEnd = function(glType, glFuncInput, ...)
 		glCallFunc = glFuncInput
 	end
 
-	orig.BeginEnd(glType, glCallFunc, ...)
+	CondEnableDisableDefaultShaders("VA_TYPE_TC", orig.BeginEnd, glType, glCallFunc, ...)
 
 	vertexCounter = 0
 	inBeginEnd = false
 end
 
+gl.TexRect = function(...)
+	CondEnableDisableDefaultShaders("VA_TYPE_TC", orig.TexRect, ...)
+end
+
+gl.Rect = function(...)
+	CondEnableDisableDefaultShaders("VA_TYPE_C", orig.Rect, ...)
+end
+
 gl.Shape = function(glType, shapeArray)
 	--Spring.Echo("gl.Shape")
+end
+
+local glalScream = Script.CreateScream()
+glalScream.func = function()
+	Spring.Echo("GLAL UNLOAD")
 end
 
 -----------------------------------------------------------------

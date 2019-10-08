@@ -13,6 +13,112 @@ end
 
 function widget:Initialize()
 	Spring.Echo(widget:GetInfo().name, "Initialize")
+	vsx,vsy = Spring.GetViewGeometry()
+end
+
+
+
+local function DrawRectRound(px,py,sx,sy,cs)
+	gl.TexCoord(0.8,0.8)
+	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(sx-cs, py, 0)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(px+cs, sy, 0)
+
+	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
+
+	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
+
+	local offset = 0.07		-- texture offset, because else gaps could show
+	local o = offset
+	-- top left
+	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(o,1-offset)
+	gl.Vertex(px+cs, py, 0)
+	gl.TexCoord(1-offset,1-offset)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.TexCoord(1-offset,o)
+	gl.Vertex(px, py+cs, 0)
+	-- top right
+	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(o,1-offset)
+	gl.Vertex(sx-cs, py, 0)
+	gl.TexCoord(1-offset,1-offset)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.TexCoord(1-offset,o)
+	gl.Vertex(sx, py+cs, 0)
+	-- bottom left
+	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, sy, 0)
+	gl.TexCoord(o,1-offset)
+	gl.Vertex(px+cs, sy, 0)
+	gl.TexCoord(1-offset,1-offset)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.TexCoord(1-offset,o)
+	gl.Vertex(px, sy-cs, 0)
+	-- bottom right
+	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(o,1-offset)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.TexCoord(1-offset,1-offset)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.TexCoord(1-offset,o)
+	gl.Vertex(sx, sy-cs, 0)
+end
+
+function RectRound(px,py,sx,sy,cs)
+	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
+
+	--gl.Texture(bgcorner)
+	gl.Color(0.33,0.33,0.33,0.2)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	--gl.Texture(false)
+
+
+
+end
+
+function widget:DrawScreenEffects()
+	local px, py, sx, sy, cs = 100, 100, 300, 300, 5
+	--RectRound(px,py,sx,sy,cs)
+
+	local x1, y1, x2, y2 = 0, 0, 1000, 1000
+
+	gl.BeginEnd(GL.QUADS, function()
+
+		gl.Color(1, 0, 0, 1)
+		gl.TexCoord(0, 0)
+		gl.Vertex(x1, y1)
+
+		gl.Color(1, 0, 0, 1)
+		gl.TexCoord(1, 0)
+		gl.Vertex(x2, y1)
+
+		gl.Color(1, 0, 0, 1)
+		gl.TexCoord(1, 1)
+		gl.Vertex(x2, y2)
+
+		gl.Color(1, 0, 0, 1)
+		gl.TexCoord(0, 1)
+		gl.Vertex(x1, y2)
+
+	end)
+
+	--gl.TexRect(x1, y1, x2, y2)
+
 end
 
 function widget:DrawScreen()

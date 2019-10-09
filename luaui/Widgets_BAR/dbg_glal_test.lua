@@ -77,16 +77,16 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(sx, sy-cs, 0)
 end
 
+local bgPadding = 5.5
+local bgcorner	= "LuaUI/Images/bgcorner.png"
+
 function RectRound(px,py,sx,sy,cs)
 	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
 
-	--gl.Texture(bgcorner)
+	gl.Texture(bgcorner)
 	gl.Color(0.33,0.33,0.33,0.2)
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
-	--gl.Texture(false)
-
-
-
+	gl.Texture(false)
 end
 
 local vao = nil

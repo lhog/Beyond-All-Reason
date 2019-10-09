@@ -103,7 +103,7 @@ gl.SecondaryColor = function(r, g, b)
 end
 
 local activeShader = 0
-UseShader = function(shaderID)
+gl.UseShader = function(shaderID)
 	if shaderID == 0 then
 		activeShader = 0
 	else
@@ -113,7 +113,7 @@ UseShader = function(shaderID)
 	orig.UseShader(shaderID)
 end
 
-ActiveShader = function(shaderID, glFunc, ...)
+gl.ActiveShader = function(shaderID, glFunc, ...)
 	if shaderID == 0 then
 		activeShader = 0
 		return
@@ -125,7 +125,7 @@ ActiveShader = function(shaderID, glFunc, ...)
 end
 
 local boundTextures = {}
-Texture = function(arg1, arg2)
+gl.Texture = function(arg1, arg2)
 	local tu
 	local tex
 	if arg2 == nil then
@@ -248,6 +248,7 @@ void main() {
 	if ((alpha_test_gt + alpha_test_lt + u_alpha_test_ctrl.w) == 0.0)
 		discard;
 	f_color_rgba.rgb = pow(f_color_rgba.rgb, u_gamma_exponents);
+	f_color_rgba.rgb = vec3(u_tex_loaded);
 }
 ]]
 }
@@ -317,7 +318,7 @@ local function CondEnableDisableDefaultShaders(shType, glCallFunc, ...)
 	local projMatLoc = gl.GetUniformLocation(activeShader, "u_proj_mat")
 	local texLoadLoc = gl.GetUniformLocation(activeShader, "u_tex_loaded")
 
-	local tu0 = (boundTextures[tu] and 1.0) or 0.0
+	local tu0 = (boundTextures[0] and 1.0) or 0.0
 
 	orig.UseShader(activeShader)
 		gl.UniformMatrix(viewMatLoc, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16)

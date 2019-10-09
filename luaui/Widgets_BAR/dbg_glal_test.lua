@@ -9,8 +9,6 @@ function widget:GetInfo()
   }
 end
 
---VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
-
 function widget:Initialize()
 	Spring.Echo(widget:GetInfo().name, "Initialize")
 	vsx,vsy = Spring.GetViewGeometry()
@@ -94,8 +92,8 @@ end
 local vao = nil
 
 function widget:DrawScreenEffects()
-	local px, py, sx, sy, cs = 100, 100, 300, 300, 8
-	--RectRound(px,py,sx,sy,cs)
+	local px, py, sx, sy, cs = 500, 500, 800, 800, 8
+	RectRound(px,py,sx,sy,cs)
 
 --[[
 	gl.BeginEnd(GL.QUADS, function()
@@ -117,7 +115,7 @@ function widget:DrawScreenEffects()
 		gl.TexCoord(0, 1)
 		gl.Vertex(x1, y2)
 	end)
-]]--
+
 
 	gl.BeginEnd(GL.QUADS, function()
 		local x1, y1, x2, y2 = 0, 0, 1000, 100
@@ -139,7 +137,7 @@ function widget:DrawScreenEffects()
 		gl.Vertex(x1, y2)
 
 	end)
-
+]]--
 
 
 --[[	vao = gl.CreateVertexArray(4, 6)
@@ -154,6 +152,7 @@ function widget:DrawScreenEffects()
 	vao = nil
 	]]--
 
+--[[
 	local x1, y1, x2, y2 = -1, -1, 1, 1
 	--math.randomseed(os.time())
 
@@ -175,7 +174,7 @@ function widget:DrawScreenEffects()
 		i  = {0, 1, 2, 2, 3, 0},
 	})
 	gl.RenderVertexArray(vao, GL.TRIANGLES)
-
+]]--
 	--gl.DeleteVertexArray(vao)
 
 --	gl.Color(1, 0, 0, 1)

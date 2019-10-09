@@ -15,7 +15,6 @@ end
 
 --1.1 Tweaks by Pako, big thx!
 
-VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
 
 -- CONFIGURATION
 local debug = false

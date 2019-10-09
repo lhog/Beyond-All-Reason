@@ -12,8 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
-
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))

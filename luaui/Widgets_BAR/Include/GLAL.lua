@@ -140,21 +140,33 @@ Texture = function(arg1, arg2)
 end
 
 
+local lastDF = -1
 local vertIndices
+local quadIndex = 0
 local function UpdateVertexIndicesForQuad()
+	local df = Spring.GetDrawFrame()
+
+	if lastDF ~= df then
+		lastDF = df
+		quadIndex = 0
+	end
+
 	vertIndices = {}
 	local quadsCount = math.floor(vertexCounter / 4)
 	for quad = 0, quadsCount - 1 do
+		local q = quad + quadIndex
 		-- Upper triangle of QUAD
-		table.insert(vertIndices, 4 * quad + 0) --tl
-		table.insert(vertIndices, 4 * quad + 1) --tr
-		table.insert(vertIndices, 4 * quad + 2) --br
+		table.insert(vertIndices, 4 * q + 0) --tl
+		table.insert(vertIndices, 4 * q + 1) --tr
+		table.insert(vertIndices, 4 * q + 2) --br
 
 		-- Lower triangle of QUAD
-		table.insert(vertIndices, 4 * quad + 2) --br
-		table.insert(vertIndices, 4 * quad + 3) --bl
-		table.insert(vertIndices, 4 * quad + 0) --tl
+		table.insert(vertIndices, 4 * q + 2) --br
+		table.insert(vertIndices, 4 * q + 3) --bl
+		table.insert(vertIndices, 4 * q + 0) --tl
 	end
+
+	quadIndex = quadIndex + quadsCount
 
 	gl.VertexIndices(vertIndices)
 end
@@ -342,6 +354,7 @@ gl.BeginEnd = function(glType, glFuncInput, ...)
 	vertexCounter = 0
 	inBeginEnd = false
 end
+
 
 gl.TexRect = function(...)
 	CondEnableDisableDefaultShaders("VA_TYPE_TC", orig.TexRect, ...)

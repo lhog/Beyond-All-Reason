@@ -14,8 +14,6 @@ function widget:GetInfo()
 	}
 end
 
-VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
-
 --[[
 changelog:
 6.3: heightboost support. missing ba floating turrets added (thx to nixa)

@@ -29,7 +29,7 @@ function widget:GetInfo()
   }
 end
 
-VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
+--VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

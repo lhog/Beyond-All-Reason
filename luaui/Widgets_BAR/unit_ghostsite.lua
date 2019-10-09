@@ -18,8 +18,6 @@ end
 1.3: removed features, handles substitutions
 --]]
 
-VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
-
 local lastUpdate
 local ghostSites = {}
 

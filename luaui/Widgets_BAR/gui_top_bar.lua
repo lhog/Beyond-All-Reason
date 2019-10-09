@@ -11,8 +11,6 @@ function widget:GetInfo()
 	}
 end
 
-VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
-
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")

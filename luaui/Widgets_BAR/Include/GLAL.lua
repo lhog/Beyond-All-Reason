@@ -248,7 +248,6 @@ void main() {
 	if ((alpha_test_gt + alpha_test_lt + u_alpha_test_ctrl.w) == 0.0)
 		discard;
 	f_color_rgba.rgb = pow(f_color_rgba.rgb, u_gamma_exponents);
-	f_color_rgba.rgb = vec3(u_tex_loaded);
 }
 ]]
 }

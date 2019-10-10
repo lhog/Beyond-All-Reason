@@ -1,6 +1,7 @@
 -- Spring OpenGL abstraction layer (GLAL). Abstracts away the difference between maintenance and develop engines
+-- Author: ivand/LHoG
 
-local isDevelop = gl.CreateVertexArray ~= nil
+local isDevelop = (gl.CreateVertexArray ~= nil)
 
 if isDevelop then
 -----------------------------------------------------------------
@@ -17,10 +18,15 @@ local orig = {
 	TexRect = gl.TexRect,
 	Rect = gl.Rect,
 	Texture = gl.Texture,
+	LoadFont = gl.LoadFont,
+	_DeleteFont = gl.DeleteFont, -- go figure why underscore is required
 }
 
-local inBeginEnd = false
-local vertexCounter = 0
+local inBeginEnd = false --TODO remove ?
+
+-----------------------------------------------------------------
+-- Display list functions
+-----------------------------------------------------------------
 
 gl.CreateList = function(functionName, ...)
 	return {
@@ -37,9 +43,17 @@ gl.DeleteList = function(dl)
 	dl = nil
 end
 
+-----------------------------------------------------------------
+-- Unit functions
+-----------------------------------------------------------------
+
 gl.DrawListAtUnit = function(unitID, listID, midPos, ...)
 	gl.DrawFuncAtUnit(unitID, listID, midPos)
 end
+
+-----------------------------------------------------------------
+-- Line functions
+-----------------------------------------------------------------
 
 gl.LineStipple = function(arg1, arg2)
 	-- Not Implemented
@@ -48,6 +62,10 @@ end
 gl.LineWidth = function(width)
 	-- Not Implemented
 end
+
+-----------------------------------------------------------------
+-- State functions
+-----------------------------------------------------------------
 
 gl.Fog = function(width)
 	-- Not Implemented
@@ -65,6 +83,11 @@ gl.AlphaTest = function(arg1, arg2)
 	-- Not Implemented
 end
 
+-----------------------------------------------------------------
+-- FFP vertex functions
+-----------------------------------------------------------------
+
+local vertexCounter = 0
 gl.Vertex = function(arg1, arg2, arg3, arg4)
 	vertexCounter = vertexCounter + 1
 	orig.Vertex(arg1, arg2, arg3, arg4)
@@ -102,6 +125,10 @@ gl.SecondaryColor = function(r, g, b)
 	currentColor[7] = b
 end
 
+-----------------------------------------------------------------
+-- Shader functions
+-----------------------------------------------------------------
+
 local activeShader = 0
 gl.UseShader = function(shaderID)
 	if shaderID == 0 then
@@ -124,6 +151,10 @@ gl.ActiveShader = function(shaderID, glFunc, ...)
 	activeShader = 0
 end
 
+-----------------------------------------------------------------
+-- Texture functions
+-----------------------------------------------------------------
+
 local boundTextures = {}
 gl.Texture = function(arg1, arg2)
 	local tu
@@ -138,6 +169,11 @@ gl.Texture = function(arg1, arg2)
 	boundTextures[tu] = tex
 	orig.Texture(tu, tex)
 end
+
+
+-----------------------------------------------------------------
+-- Shape functions
+-----------------------------------------------------------------
 
 
 local lastDF = -1
@@ -262,7 +298,7 @@ local vertexTypes = {
 	["VA_TYPE_2D0"] = true, -- x, y
 	["VA_TYPE_2DT"] = true, -- x, y, st
 	["VA_TYPE_2DTC"] = true, -- x, y, st, c
-	["VA_TYPE_L"] = true, -- p, n, uvwz, c0, c1
+	["VA_TYPE_L"] = vaTypeLShaderSources, -- p, n, uvwz, c0, c1
 }
 
 local defaultShaders = {}
@@ -271,11 +307,12 @@ local function CompileDefaultShader(shType)
 		return
 	end
 
-	local shaderSrc
-	if shType ~= "VA_TYPE_L" then
+	local shaderSrc = vertexTypes[shType]
+
+	if not shaderSrc then
+		return
+	elseif type(shaderSrc) == "boolean" then
 		shaderSrc = gl.GetDefaultShaderSources(shType)
-	else
-		shaderSrc = vaTypeLShaderSources
 	end
 
 	local shader = gl.CreateShader({
@@ -368,21 +405,114 @@ gl.Shape = function(glType, shapeArray)
 	--Spring.Echo("gl.Shape")
 end
 
-local glalScream = Script.CreateScream()
-glalScream.func = function()
-	Spring.Echo("GLAL UNLOAD")
-	for k, v in pairs(defaultShaders) do
-		if v then
-			gl.DeleteShader(v)
+-----------------------------------------------------------------
+-- Font functions
+-----------------------------------------------------------------
+
+local cfBeginEnd = false
+local CompatFont = setmetatable({}, {
+	__call = function(self, cf) return
+		setmetatable({
+			sf = cf,
+		}, self)
+	end,
+	})
+CompatFont.__index = CompatFont
+
+function CompatFont:Print(text, x, y, size, options)
+	Spring.Echo(self, self.sf, self.sf.Print, text, x, y, size, options)
+	local sf = self.sf
+	--Spring.Echo("Print", sf, sf.Print)
+	sf:Print(text, x, y, size, options)
+end
+
+function CompatFont:SetTextColor(r, g, b, a)
+	self.sf:SetTextColor(r, g, b, a)
+end
+
+function CompatFont:SetOutlineColor(r, g, b, a)
+	self.sf:SetOutlineColor(r, g, b, a)
+end
+
+function CompatFont:SetAutoOutlineColor(enable)
+	self.sf:SetAutoOutlineColor(enable)
+end
+
+function CompatFont:GetTextWidth(text)
+	return self.sf:GetTextWidth(enable)
+end
+
+function CompatFont:GetTextHeight(text)
+	return self.sf:GetTextHeight(text)
+end
+
+function CompatFont:WrapText(text, max_width, max_height, size)
+	return self.sf:WrapText(text, max_width, max_height, size)
+end
+
+function CompatFont:BindTexture(...)
+	return self.sf:BindTexture(...)
+end
+
+
+function CompatFont:Begin()
+	--origFont
+	cfBeginEnd = true
+	self.sf:Begin()
+end
+
+function CompatFont:End()
+	self.sf:End()
+	cfBeginEnd = false
+end
+
+--RenderDataBufferTC
+loadedFonts = {}
+gl.LoadFont = function(fn, sz, owi, owe)
+	local sf = orig.LoadFont(fn, sz, owi, owe)
+
+	Spring.Echo("gl.LoadFont", fn, sz, owi, owe, sf, sf.Print)
+
+	if sf then
+		loadedFonts[sf] = true
+		return CompatFont(sf)
+	end
+	--return (sf and CompatFont(sf)) or nil
+end
+
+gl.DeleteFont = function(cf)
+	if cf then
+		if loadedFonts[cf.sf] then
+			orig._DeleteFont(cf.sf)
+			loadedFonts[cf.sf] = nil
 		end
+		cf = nil
 	end
 end
 
 -----------------------------------------------------------------
--- Maintenance
+-- Scream Shutdown
 -----------------------------------------------------------------
-else
 
+local glalScream = Script.CreateScream()
+glalScream.func = function()
+	Spring.Echo("GLAL UNLOAD")
 
+	for k, v in pairs(defaultShaders) do
+		if v then
+			orig.DeleteShader(v)
+		end
+	end
 
+	for k, v in pairs(loadedFonts) do
+		if v and v > 0 then
+			orig._DeleteFont(k)
+		end
+	end
+
+end
+
+-----------------------------------------------------------------
+-- End of Develop
+-----------------------------------------------------------------
 end

@@ -388,9 +388,9 @@ function widget:DrawScreen()
   end
   if (WG['guishader']) and not activeGuishader then
     activeGuishader = true
-    dlistGuishader = gl.CreateList( function()
-      RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 8*sizeMultiplier)
-    end)
+   -- dlistGuishader = gl.CreateList( function()
+     -- RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 8*sizeMultiplier)
+    --end)
     WG['guishader'].InsertDlist(dlistGuishader, 'widgetselector')
   end
   borderx = (yStep*sizeMultiplier) * 0.75

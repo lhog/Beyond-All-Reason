@@ -80,6 +80,18 @@ end
 local bgPadding = 5.5
 local bgcorner	= "LuaUI/Images/bgcorner.png"
 
+
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
+
 function RectRound(px,py,sx,sy,cs)
 	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
 
@@ -91,9 +103,16 @@ end
 
 local vao = nil
 
+local WhiteStr   = "\255\255\255\255"
+
 function widget:DrawScreenEffects()
 	local px, py, sx, sy, cs = 500, 500, 800, 800, 8
 	RectRound(px,py,sx,sy,cs)
+
+	local tcol = WhiteStr
+	
+	font:Print(tcol.."leftleft", px, py, 50, "or")
+	--font2:Print(tcol.."rightright", px, py, 50, "o")
 
 --[[
 	gl.BeginEnd(GL.QUADS, function()

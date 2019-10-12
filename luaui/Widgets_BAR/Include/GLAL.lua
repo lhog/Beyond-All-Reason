@@ -19,7 +19,7 @@ local orig = {
 	Rect = gl.Rect,
 	Texture = gl.Texture,
 	LoadFont = gl.LoadFont,
-	_DeleteFont = gl.DeleteFont, -- go figure why underscore is required
+	DeleteFont = gl.DeleteFont, -- go figure why underscore is required
 }
 
 local inBeginEnd = false --TODO remove ?
@@ -334,6 +334,89 @@ local function CompileDefaultShader(shType)
 	return shader
 end
 
+--[[
+-- Identity matrix
+local i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16 =
+1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1
+local function GetCallinMatrices()
+	local m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16 = gl.GetMatrixData(GL.MODELVIEW)
+	--Spring.Echo(m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16)
+	local p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16 = gl.GetMatrixData(GL.PROJECTION)
+	--Spring.Echo(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16)
+	if m1==i1 and m2==i2 and m3==i3 and m4==i4 and
+	   m5==i5 and m6==i6 and m7==i7 and m8==i8 and
+	   m9==i9 and m10==i10 and m11==i11 and m12==i12 and
+	   m13==i13 and m14==i14 and m15==i15 and m16==i16 then
+			m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16 = gl.GetMatrixData("view")
+			p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16 = gl.GetMatrixData("projection")
+	end
+
+	return
+		m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16,
+		p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16
+end
+]]--
+
+local DRAW_NONE               = 0
+local DRAW_GENESIS            = 1
+local DRAW_WORLD              = 2
+local DRAW_WORLD_SHADOW       = 3
+local DRAW_WORLD_REFLECTION   = 4
+local DRAW_WORLD_REFRACTION   = 5
+local DRAW_SCREEN             = 6
+local DRAW_MINIMAP            = 7
+local DRAW_MINIMAP_BACKGROUND = 8
+
+local worldDrawModes = {
+	[DRAW_GENESIS] = true,
+	[DRAW_WORLD] = true,
+	[DRAW_WORLD_REFLECTION] = true, --?
+	[DRAW_WORLD_REFRACTION] = true, --?
+}
+
+local mmDrawModes = {
+	[DRAW_MINIMAP] = true,
+	[DRAW_MINIMAP_BACKGROUND] = true,
+}
+
+local function GetCallinMatrices()
+	local currDrawMode, prevDrawMode = gl.GetDrawMode()
+
+	if currDrawMode == prevDrawMode then
+		return true
+	end
+
+	local m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16
+	local p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16
+
+	if worldDrawModes[currDrawMode] then
+		m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16 = gl.GetMatrixData("view")
+		p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16 = gl.GetMatrixData("projection")
+	elseif mmDrawModes[currDrawMode] then
+		--skip for now
+		----
+		----
+		----
+		----
+	elseif currDrawMode == DRAW_SCREEN then
+		m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16 = gl.GetMatrixData(GL.MODELVIEW)
+		p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16 = gl.GetMatrixData(GL.PROJECTION)
+	elseif currDrawMode == DRAW_WORLD_SHADOW then
+		--skip for now
+		----
+		----
+		----
+		----
+	end
+
+	return false,
+		m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16,
+		p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16
+end
+
+
+local m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16
+local p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16
 local function CondEnableDisableDefaultShaders(shType, glCallFunc, ...)
 	if activeShader ~= 0 then --someone else activated non-default shader
 		glCallFunc(...)
@@ -344,10 +427,13 @@ local function CondEnableDisableDefaultShaders(shType, glCallFunc, ...)
 		defaultShaders[shType] = CompileDefaultShader(shType)
 	end
 
-	local m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16 = gl.GetMatrixData(GL.MODELVIEW)
-	--Spring.Echo(m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16)
-	local p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16 = gl.GetMatrixData(GL.PROJECTION)
-	--Spring.Echo(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16)
+	local useOld, _m1, _m2, _m3, _m4, _m5, _m6, _m7, _m8, _m9, _m10, _m11, _m12, _m13, _m14, _m15, _m16,
+	_p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, _p11, _p12, _p13, _p14, _p15, _p16 = GetCallinMatrices()
+
+	if not useOld then
+		m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16 = _m1, _m2, _m3, _m4, _m5, _m6, _m7, _m8, _m9, _m10, _m11, _m12, _m13, _m14, _m15, _m16
+		p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16 = _p1, _p2, _p3, _p4, _p5, _p6, _p7, _p8, _p9, _p10, _p11, _p12, _p13, _p14, _p15, _p16
+	end
 
 	activeShader = defaultShaders[shType]
 	local viewMatLoc = gl.GetUniformLocation(activeShader, "u_movi_mat")
@@ -409,6 +495,7 @@ end
 -- Font functions
 -----------------------------------------------------------------
 
+--[[
 local cfBeginEnd = false
 local CompatFont = setmetatable({}, {
 	__call = function(self, cf) return
@@ -423,7 +510,7 @@ function CompatFont:Print(text, x, y, size, options)
 	Spring.Echo(self, self.sf, self.sf.Print, text, x, y, size, options)
 	local sf = self.sf
 	--Spring.Echo("Print", sf, sf.Print)
-	sf:Print(text, x, y, size, options)
+	--sf:Print(text, x, y, size, options)
 end
 
 function CompatFont:SetTextColor(r, g, b, a)
@@ -454,7 +541,6 @@ function CompatFont:BindTexture(...)
 	return self.sf:BindTexture(...)
 end
 
-
 function CompatFont:Begin()
 	--origFont
 	cfBeginEnd = true
@@ -483,12 +569,14 @@ end
 gl.DeleteFont = function(cf)
 	if cf then
 		if loadedFonts[cf.sf] then
-			orig._DeleteFont(cf.sf)
+			orig.DeleteFont(cf.sf)
 			loadedFonts[cf.sf] = nil
 		end
 		cf = nil
 	end
 end
+
+]]--
 
 -----------------------------------------------------------------
 -- Scream Shutdown
@@ -504,11 +592,11 @@ glalScream.func = function()
 		end
 	end
 
-	for k, v in pairs(loadedFonts) do
-		if v and v > 0 then
-			orig._DeleteFont(k)
+	--for k, v in pairs(loadedFonts) do
+		if v then
+			orig.DeleteFont(k)
 		end
-	end
+	--end
 
 end
 

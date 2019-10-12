@@ -15,6 +15,8 @@ Spring.SendCommands({"ctrlpanel " .. LUAUI_DIRNAME .. "ctrlpanel.txt"})
 
 VFS.Include(LUAUI_DIRNAME .. 'utils.lua', utilFile)
 
+VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
+
 include("setupdefs.lua")
 include("savetable.lua")
 
@@ -31,7 +33,7 @@ VFS.Include(LUAUI_DIRNAME .. 'barwidgets.lua', nil, VFS.ZIP)
 
 if (RestartCount == nil) then
   RestartCount = 0
-else 
+else
   RestartCount = RestartCount + 1
 end
 

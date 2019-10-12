@@ -17,8 +17,6 @@ function pwl() -- ???  (print widget list)
   end
 end
 
-VFS.Include("LuaUI/Widgets_BAR/Include/GLAL.lua")
-
 
 include("keysym.h.lua")
 include("utils.lua")

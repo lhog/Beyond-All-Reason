@@ -103,18 +103,30 @@ end
 
 local vao = nil
 
-local WhiteStr   = "\255\255\255\255"
+local WhiteStr = "\255\255\255\255"
 
-function widget:DrawScreenEffects()
+function widget:DrawWorld()
 	local px, py, sx, sy, cs = 500, 500, 800, 800, 8
-	RectRound(px,py,sx,sy,cs)
+	--RectRound(px,py,sx,sy,cs)
 
 	local tcol = WhiteStr
-	
-	font:Print(tcol.."leftleft", px, py, 50, "or")
+
+	--font:Begin()
+		--font:Print(tcol.."leftleft", px/vsx, py/vsy, 50/vsy, "or")
+		local df = Spring.GetDrawFrame()
+		font:Print(tcol.."leftleft", 0.5, math.sin(df*00.1), 0.05, "ocvB")
+		font:DrawBuffered()
+	--font:End()
+
+	--font:Print(tcol.."leftleft", px, py, 50, "or")
 	--font2:Print(tcol.."rightright", px, py, 50, "o")
 
---[[
+	--local m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16 = gl.GetMatrixData(GL.MODELVIEW)
+	--Spring.Echo("MV", m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16)
+	--local p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16 = gl.GetMatrixData(GL.PROJECTION)
+	--Spring.Echo("PJ", p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16)
+
+
 	gl.BeginEnd(GL.QUADS, function()
 		local x1, y1, x2, y2 = 0, 0, 100, 1000
 
@@ -136,6 +148,7 @@ function widget:DrawScreenEffects()
 	end)
 
 
+--[[
 	gl.BeginEnd(GL.QUADS, function()
 		local x1, y1, x2, y2 = 0, 0, 1000, 100
 

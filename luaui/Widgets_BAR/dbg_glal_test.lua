@@ -11,9 +11,84 @@ end
 
 function widget:Initialize()
 	Spring.Echo(widget:GetInfo().name, "Initialize")
-	vsx,vsy = Spring.GetViewGeometry()
 end
 
+local vsx,vsy = Spring.GetViewGeometry()
+
+local cutomScale = 1
+local sizeMultiplier = 1
+
+local WhiteStr   = "\255\255\255\255"
+local RedStr     = "\255\255\001\001"
+local GreenStr   = "\255\001\255\001"
+local BlueStr    = "\255\001\001\255"
+local CyanStr    = "\255\001\255\255"
+local YellowStr  = "\255\255\255\001"
+local MagentaStr = "\255\255\001\255"
+
+local cutomScale = 1
+local sizeMultiplier = 1
+
+local floor = math.floor
+
+local widgetsList = {}
+local fullWidgetsList = {}
+
+local vsx, vsy = widgetHandler:GetViewSizes()
+
+local minMaxEntries = 15
+local curMaxEntries = 25
+
+local startEntry = 1
+local pageStep  = math.floor(curMaxEntries / 2) - 1
+
+local fontSize = 13.5
+local fontSpace = 8.5
+local yStep = fontSize + fontSpace
+
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
+local bgPadding = 5.5
+local bgcorner	= "LuaUI/Images/bgcorner.png"
+
+local maxWidth = 0.01
+local borderx = yStep * 0.75
+local bordery = yStep * 0.75
+
+local midx = vsx * 0.5
+local minx = vsx * 0.4
+local maxx = vsx * 0.6
+local midy = vsy * 0.5
+local miny = vsy * 0.4
+local maxy = vsy * 0.6
+
+local sbposx = 0.0
+local sbposy = 0.0
+local sbsizex = 0.0
+local sbsizey = 0.0
+local sby1 = 0.0
+local sby2 = 0.0
+local sbsize = 0.0
+local sbheight = 0.0
+local activescrollbar = false
+local scrollbargrabpos = 0.0
+
+local show = false
+local pagestepped = false
+
+
+local titleFontSize = 20
+local buttonFontSize = 15
+local buttonHeight = 24
+local buttonTop = 28 -- offset between top of buttons and bottom of widget
 
 
 local function DrawRectRound(px,py,sx,sy,cs)
@@ -77,21 +152,6 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(sx, sy-cs, 0)
 end
 
-local bgPadding = 5.5
-local bgcorner	= "LuaUI/Images/bgcorner.png"
-
-
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 6
-local fontfileOutlineStrength = 1.4
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-
-
 function RectRound(px,py,sx,sy,cs)
 	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
 
@@ -105,8 +165,6 @@ local vao = nil
 
 local WhiteStr = "\255\255\255\255"
 
-local near = (Platform.glSupportClipSpaceControl and 0) or -1
-
 function widget:DrawWorld()
 	font:WorldBegin()
 	font:WorldPrint(WhiteStr.."leftleft", 882.0, 400.0, 984.0)
@@ -115,34 +173,15 @@ end
 
 function widget:DrawScreen()
 	local px, py, sx, sy, cs = 500, 500, 800, 800, 8
-	--RectRound(px,py,sx,sy,cs)
-
-	gl.MatrixMode(GL.PROJECTION)
-	gl.PushMatrix()
+	RectRound(px,py,sx,sy,cs)
 
 	font:Begin()
 		--font:Print(tcol.."leftleft", px/vsx, py/vsy, 50/vsy, "or")
-		--gl.LoadMatrix()
-		--gl.LoadIdentity()
-		--gl.Ortho(0, vsx, 0, vsy, near, 1)
-		--local df = Spring.GetDrawFrame()
-		font:Print("leftleft", 0.0, 0.0, 1.0, "ocvNS")
---		font:DrawBuffered()
+		font:Print("leftleft", 0.5 * vsx, 0.4 * vsy, 23.0, "vc")
+		font:Print("leftleft", 0.5 * vsx, 0.5 * vsy, 23.0, "vc")
+		font:Print("leftleft", 0.5 * vsx, 0.6 * vsy, 23.0, "vc")
 	font:End()
 
-	gl.PopMatrix()
-	gl.MatrixMode(GL.MODELVIEW)
-
-
-
-
-	--font:Print(tcol.."leftleft", px, py, 50, "or")
-	--font2:Print(tcol.."rightright", px, py, 50, "o")
-
-	--local m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16 = gl.GetMatrixData(GL.MODELVIEW)
-	--Spring.Echo("MV", m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16)
-	--local p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16 = gl.GetMatrixData(GL.PROJECTION)
-	--Spring.Echo("PJ", p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16)
 
 --[[
 	gl.BeginEnd(GL.QUADS, function()
@@ -231,81 +270,6 @@ function widget:DrawScreen()
 --	gl.Rect(x1, y1, x2, y2)
 
 end
-
-
-
---function widget:DrawScreen()
-
-	--Spring.Echo(widget:GetInfo().name, "DrawWorld")
-
-	--local x1, y1, x2, y2 = 0, 0, 1000, 1000
-	--local x1, y1, x2, y2 = 0, 0, 0.5, 0.5
---[[
-	gl.BeginEnd(GL.QUADS, function()
-
-		gl.Color(1, 0, 0, 1)
-		gl.TexCoord(0, 0)
-		gl.Vertex(x1, y1)
-
-		gl.Color(1, 0, 0, 1)
-		gl.TexCoord(1, 0)
-		gl.Vertex(x2, y1)
-
-		gl.Color(1, 0, 0, 1)
-		gl.TexCoord(1, 1)
-		gl.Vertex(x2, y2)
-
-		gl.Color(1, 0, 0, 1)
-		gl.TexCoord(0, 1)
-		gl.Vertex(x1, y2)
-
-	end)
-]]--
-
---[[
-	local vao = gl.CreateVertexArray(4, 6)
-	gl.UpdateVertexArray(vao, 0, 0,
-	{
-		p  = {x1, y1, 0, 1, x2, y1, 0, 1, x2, y2, 0, 1, x1, y2, 0, 1},
-		c0 = {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1},
-		i  = {0, 1, 2, 2, 3, 0},
-	})
-	gl.RenderVertexArray(vao, GL.TRIANGLES)
-	gl.DeleteVertexArray(vao)
-	vao = nil
-]]--
-
---[[
-	gl.Color(1, 0, 0, 1)
-	--gl.TexRect(x1, y1, x2, y2)
-	gl.Rect(x1, y1, x2, y2)
-	--gl.TexRect(-1, -1, 10, 10)
-]]--
---[[
-	gl.BeginEnd(GL.TRIANGLES, function()
-
-		gl.Color(1, 0, 0, 1)
-		gl.Vertex(x1, y1)
-
-		gl.Color(1, 0, 0, 1)
-		gl.Vertex(x2, y1)
-
-		gl.Color(1, 0, 0, 1)
-		gl.Vertex(x2, y2)
-
-		gl.Color(1, 0, 0, 1)
-		gl.Vertex(x2, y2)
-
-		gl.Color(1, 0, 0, 1)
-		gl.Vertex(x1, y2)
-
-		gl.Color(1, 0, 0, 1)
-		gl.Vertex(x1, y1)
-
-	end)
-]]--
-
---end
 
 
 function widget:Shutdown()

@@ -24,8 +24,8 @@ function widget:GetInfo()
     date      = "Jan 8, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = -math.huge,
-    handler   = false, 
-    enabled   = false  
+    handler   = true, 
+    enabled   = true  
   }
 end
 
@@ -37,7 +37,7 @@ end
 -- relies on custom stuff in widgetHandler to implement blankOutConfig and allowUserWidgets
 
 include("keysym.h.lua")
-include("fonts.lua")
+--include("fonts.lua")
 
 local WhiteStr   = "\255\255\255\255"
 local RedStr     = "\255\255\001\001"
@@ -73,9 +73,9 @@ local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
 local fontfileOutlineSize = 6
 local fontfileOutlineStrength = 1.4
---local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
---local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local bgPadding = 5.5
 local bgcorner	= "LuaUI/Images/bgcorner.png"

@@ -8,7 +8,6 @@ if isDevelop then
 -- Develop
 -----------------------------------------------------------------
 
-
 local orig = {
 	Vertex = gl.Vertex,
 	BeginEnd = gl.BeginEnd,
@@ -23,6 +22,11 @@ local orig = {
 }
 
 local inBeginEnd = false --TODO remove ?
+
+-----------------------------------------------------------------
+-- Misc functions
+-----------------------------------------------------------------
+
 
 -----------------------------------------------------------------
 -- Display list functions
@@ -351,11 +355,12 @@ local function GetCallinMatrices()
 			p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16 = gl.GetMatrixData("projection")
 	end
 
-	return
+	return false,
 		m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16,
 		p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16
 end
 ]]--
+
 
 local DRAW_NONE               = 0
 local DRAW_GENESIS            = 1
@@ -379,12 +384,14 @@ local mmDrawModes = {
 	[DRAW_MINIMAP_BACKGROUND] = true,
 }
 
+
 local function GetCallinMatrices()
 	local currDrawMode, prevDrawMode = gl.GetDrawMode()
-
+--[[
 	if currDrawMode == prevDrawMode then
 		return true
 	end
+]]--
 
 	local m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16
 	local p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16
@@ -415,8 +422,6 @@ local function GetCallinMatrices()
 end
 
 
-local m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16
-local p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16
 local function CondEnableDisableDefaultShaders(shType, glCallFunc, ...)
 	if activeShader ~= 0 then --someone else activated non-default shader
 		glCallFunc(...)
@@ -495,8 +500,7 @@ end
 -- Font functions
 -----------------------------------------------------------------
 
---[[
-local cfBeginEnd = false
+
 local CompatFont = setmetatable({}, {
 	__call = function(self, cf) return
 		setmetatable({
@@ -505,13 +509,6 @@ local CompatFont = setmetatable({}, {
 	end,
 	})
 CompatFont.__index = CompatFont
-
-function CompatFont:Print(text, x, y, size, options)
-	Spring.Echo(self, self.sf, self.sf.Print, text, x, y, size, options)
-	local sf = self.sf
-	--Spring.Echo("Print", sf, sf.Print)
-	--sf:Print(text, x, y, size, options)
-end
 
 function CompatFont:SetTextColor(r, g, b, a)
 	self.sf:SetTextColor(r, g, b, a)
@@ -526,7 +523,7 @@ function CompatFont:SetAutoOutlineColor(enable)
 end
 
 function CompatFont:GetTextWidth(text)
-	return self.sf:GetTextWidth(enable)
+	return self.sf:GetTextWidth(text)
 end
 
 function CompatFont:GetTextHeight(text)
@@ -542,14 +539,54 @@ function CompatFont:BindTexture(...)
 end
 
 function CompatFont:Begin()
-	--origFont
-	cfBeginEnd = true
-	self.sf:Begin()
+	--self.sf:Begin()
 end
 
 function CompatFont:End()
-	self.sf:End()
+	self.sf:DrawBuffered()
+	--self.sf:End()
+end
+
+function CompatFont:Print(text, x, y, size, options)
+	local vsx, vsy, vx, vy = Spring.GetViewGeometry()
+
+	x, y = x / vsx, y / vsy --keep it simple for now (no vx/vy)
+
+	if not options:find("n") then
+		options = options.."n"
+	end
+
+	if not options:find("N") then
+		options = options.."N"
+	end
+
+	if not options:find("B") then
+		options = options.."B"
+	end
+	--options = options.."nN" --just in case
+	--size, options = 23.0, "ocvNB"
+
+	Spring.Echo(text, x, y, size, options)
+	self.sf:Print(text, x, y, size, options)
+end
+
+function CompatFont:DrawBuffered()
+	self.sf:DrawBuffered()
+end
+
+function CompatFont:WorldBegin()
+	--origFont
+	cfBeginEnd = true
+	self.sf:WorldBegin()
+end
+
+function CompatFont:WorldEnd()
+	self.sf:WorldEnd()
 	cfBeginEnd = false
+end
+
+function CompatFont:WorldPrint(...)
+	self.sf:WorldPrint(...)
 end
 
 --RenderDataBufferTC
@@ -557,7 +594,7 @@ loadedFonts = {}
 gl.LoadFont = function(fn, sz, owi, owe)
 	local sf = orig.LoadFont(fn, sz, owi, owe)
 
-	Spring.Echo("gl.LoadFont", fn, sz, owi, owe, sf, sf.Print)
+	--Spring.Echo("gl.LoadFont", fn, sz, owi, owe, sf, sf.Print)
 
 	if sf then
 		loadedFonts[sf] = true
@@ -576,7 +613,7 @@ gl.DeleteFont = function(cf)
 	end
 end
 
-]]--
+
 
 -----------------------------------------------------------------
 -- Scream Shutdown
@@ -592,12 +629,14 @@ glalScream.func = function()
 		end
 	end
 
-	--for k, v in pairs(loadedFonts) do
+	-- somehow crashes the game
+--[[
+	for k, v in pairs(loadedFonts) do
 		if v then
 			orig.DeleteFont(k)
 		end
-	--end
-
+	end
+]]--
 end
 
 -----------------------------------------------------------------

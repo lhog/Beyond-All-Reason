@@ -9,6 +9,8 @@ function widget:GetInfo()
   }
 end
 
+--include("fonts.lua")
+
 function widget:Initialize()
 	Spring.Echo(widget:GetInfo().name, "Initialize")
 end
@@ -177,9 +179,10 @@ function widget:DrawScreen()
 
 	font:Begin()
 		--font:Print(tcol.."leftleft", px/vsx, py/vsy, 50/vsy, "or")
-		font:Print("leftleft", 0.5 * vsx, 0.4 * vsy, 23.0, "vc")
+		--font:Print("leftleft", 0.5 * vsx, 0.4 * vsy, 23.0, "vc")
+		--gl.Scale(2,2,2)
 		font:Print("leftleft", 0.5 * vsx, 0.5 * vsy, 23.0, "vc")
-		font:Print("leftleft", 0.5 * vsx, 0.6 * vsy, 23.0, "vc")
+		--font:Print("leftleft", 0.5 * vsx, 0.6 * vsy, 23.0, "vc")
 	font:End()
 
 

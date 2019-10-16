@@ -18,7 +18,7 @@ local orig = {
 	Rect = gl.Rect,
 	Texture = gl.Texture,
 	LoadFont = gl.LoadFont,
-	DeleteFont = gl.DeleteFont, -- go figure why underscore is required
+	DeleteFont = gl.DeleteFont,
 }
 
 local inBeginEnd = false --TODO remove ?
@@ -552,8 +552,8 @@ function CompatFont:Print(text, x, y, size, options)
 
 	x, y = x / vsx, y / vsy --keep it simple for now (no vx/vy)
 
-	if not options:find("n") then
-		options = options.."n"
+	if options:find("n") then
+		options = options:gsub("n", "")
 	end
 
 	if not options:find("N") then
@@ -566,7 +566,7 @@ function CompatFont:Print(text, x, y, size, options)
 	--options = options.."nN" --just in case
 	--size, options = 23.0, "ocvNB"
 
-	Spring.Echo(text, x, y, size, options)
+	--Spring.Echo(self, self.sf, self.sf.Print, text, x, y, size, options)
 	self.sf:Print(text, x, y, size, options)
 end
 

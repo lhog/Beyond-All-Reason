@@ -338,29 +338,6 @@ local function CompileDefaultShader(shType)
 	return shader
 end
 
---[[
--- Identity matrix
-local i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16 =
-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1
-local function GetCallinMatrices()
-	local m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16 = gl.GetMatrixData(GL.MODELVIEW)
-	--Spring.Echo(m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16)
-	local p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16 = gl.GetMatrixData(GL.PROJECTION)
-	--Spring.Echo(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16)
-	if m1==i1 and m2==i2 and m3==i3 and m4==i4 and
-	   m5==i5 and m6==i6 and m7==i7 and m8==i8 and
-	   m9==i9 and m10==i10 and m11==i11 and m12==i12 and
-	   m13==i13 and m14==i14 and m15==i15 and m16==i16 then
-			m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16 = gl.GetMatrixData("view")
-			p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16 = gl.GetMatrixData("projection")
-	end
-
-	return false,
-		m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16,
-		p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16
-end
-]]--
-
 
 local DRAW_NONE               = 0
 local DRAW_GENESIS            = 1
@@ -385,13 +362,14 @@ local mmDrawModes = {
 }
 
 
+local m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16
+local p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16
 local function GetCallinMatrices()
 	local currDrawMode, prevDrawMode = gl.GetDrawMode()
---[[
+
 	if currDrawMode == prevDrawMode then
 		return true
 	end
-]]--
 
 	local m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16
 	local p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16
@@ -406,8 +384,8 @@ local function GetCallinMatrices()
 		----
 		----
 	elseif currDrawMode == DRAW_SCREEN then
-		m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16 = gl.GetMatrixData(GL.MODELVIEW)
-		p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16 = gl.GetMatrixData(GL.PROJECTION)
+		m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16 = gl.GetScreenViewMatrix()
+		p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16 = gl.GetScreenProjMatrix()
 	elseif currDrawMode == DRAW_WORLD_SHADOW then
 		--skip for now
 		----

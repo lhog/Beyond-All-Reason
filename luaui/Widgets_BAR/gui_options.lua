@@ -569,7 +569,6 @@ function DrawWindow()
 	font2:Begin()
 	font2:SetTextColor(1,1,1,1)
 	font2:SetOutlineColor(0,0,0,0.4)
-	Spring.Echo(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
 	font2:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
 	font2:End()
 

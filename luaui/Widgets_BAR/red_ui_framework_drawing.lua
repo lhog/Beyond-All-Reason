@@ -13,7 +13,7 @@ end
 
 local bgcornerSize = 8
 local bgcorner = "LuaUI/Images/bgcorner.png"
-	
+
 local TN = "Red_Drawing" --WG name for function list
 local version = 9
 
@@ -103,7 +103,7 @@ local function Border(px,py,sx,sy,width,c)
 		return
 	end
 	px,py,sx,sy = px,py,sx,sy
-	
+
 	glPushMatrix()
 	if (c) then
 		glColor(c[1],c[2],c[3],c[4])
@@ -140,19 +140,19 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(sx-cs, py, 0)
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
-	
+
 	gl.Vertex(px, py+cs, 0)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.Vertex(px, sy-cs, 0)
-	
+
 	gl.Vertex(sx, py+cs, 0)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
-	
+
 	local offset = 0.05		-- texture offset, because else gaps could show
-	
+
 	-- top left
 	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
@@ -305,7 +305,7 @@ function widget:Initialize()
 	font2 = WG['Red'].font2
 	vsx,vsy = widgetHandler:GetViewSizes()
 	CreateStartList()
-	
+
 	local T = {}
 	WG[TN] = T
 	T.version = version
@@ -327,7 +327,7 @@ function widget:Initialize()
 	T.RectRound = function(a,b,c,d,e,f,g,h,i)
 		Todo[#Todo+1] = {6,a,b,c,d,e,f,g,h,i}
 	end
-	
+
 	F[1] = Color
 	F[2] = Rect
 	F[3] = TexRect
@@ -444,9 +444,9 @@ end
 function widget:Shutdown()
 	glDeleteList(StartList)
 	removeDLists()
-	
+
 	if WG['guishader'] then
-	
+
 		-- remove blur areas
 		for id, rect in pairs(blurRect) do
 			if rect.id ~= nil then
@@ -455,10 +455,10 @@ function widget:Shutdown()
 			end
 		end
 	end
-	
+
 	if (WG[TN].LastWidget) then
 		Spring.Echo(widget:GetInfo().name..">> last processed widget was \""..WG[TN].LastWidget.."\"") --for debugging
 	end
-	
+
 	WG[TN]=nil
 end

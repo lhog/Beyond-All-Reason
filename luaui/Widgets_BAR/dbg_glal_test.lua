@@ -168,15 +168,29 @@ local vao = nil
 local WhiteStr = "\255\255\255\255"
 
 function widget:DrawWorld()
-	font:WorldBegin()
-	font:WorldPrint(WhiteStr.."leftleft", 882.0, 400.0, 984.0)
-	font:WorldEnd()
+	--font:WorldBegin()
+	--font:WorldPrint(WhiteStr.."leftleft", 882.0, 400.0, 984.0)
+	--font:WorldEnd()
 end
 
 function widget:DrawScreen()
+
+	--gl.ResetState()
+	--gl.ResetMatrices()
+
+		gl.MatrixMode(GL.PROJECTION)
+		gl.LoadIdentity()
+		gl.Ortho(0,vsx,vsy,0,0,1) --top left is 0,0
+		gl.DepthTest(false)
+		gl.MatrixMode(GL.MODELVIEW)
+		gl.LoadIdentity()
+		gl.Translate(0.375,0.375,0) -- for exact pixelization
+
+
 	local px, py, sx, sy, cs = 500, 500, 800, 800, 8
 	RectRound(px,py,sx,sy,cs)
 
+--[[
 	font:Begin()
 		--font:Print(tcol.."leftleft", px/vsx, py/vsy, 50/vsy, "or")
 		--font:Print("leftleft", 0.5 * vsx, 0.4 * vsy, 23.0, "vc")
@@ -184,7 +198,7 @@ function widget:DrawScreen()
 		font:Print("leftleft", 0.5 * vsx, 0.5 * vsy, 23.0, "vc")
 		--font:Print("leftleft", 0.5 * vsx, 0.6 * vsy, 23.0, "vc")
 	font:End()
-
+]]--
 
 --[[
 	gl.BeginEnd(GL.QUADS, function()

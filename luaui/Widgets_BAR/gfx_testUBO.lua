@@ -13,7 +13,7 @@ local vsSrc = [[
 
 #line 1016
 
-layout(std140, binding = 0) uniform UniformConstantsBuffer {
+layout(std140, binding = 0) uniform UniformMatrixBuffer {
 	mat4 screenView;
 	mat4 screenProj;
 	mat4 screenViewProj;
@@ -32,30 +32,17 @@ layout(std140, binding = 0) uniform UniformConstantsBuffer {
 	mat4 shadowViewProj;
 
 	//TODO: minimap matrices
+};
 
+layout(std140, binding = 1) uniform UniformParamsBuffer {
 	vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
-	vec4 viewGemetry; //vsx, vsy, vpx, vpy
+	vec4 viewGeometry; //vsx, vsy, vpx, vpy
 	vec4 mapSize; //xz, xzPO2
 };
 
 void main() {
-/*
-	mat4 billBoard = cameraView;
-	billBoard[0].xyz = vec3(1, 0, 0);
-	billBoard[1].xyz = vec3(0, 1, 0);
-	billBoard[2].xyz = vec3(0, 0, 1);
-*/
-
-	//gl_Position = cameraProj * cameraView * vec4(gl_Vertex.xyz, 1.0);
-    //gl_Position = cameraProj * billBoard * vec4(gl_Vertex.xyz, 1.0);
-	//gl_Position = shadowViewProj * vec4(gl_Vertex.xyz, 1.0);
-	//gl_Position = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xyz, 1.0);
-	//gl_Position = screenProj * billBoard * vec4(gl_Vertex.xyz, 1.0);
-	gl_Position = cameraProj * cameraBillboard * vec4(gl_Vertex.xyz, 1.0);
-	//gl_Position = cameraProj * cameraView * vec4(gl_Vertex.xyz, 1.0);
-	
-	//gl_Position = screenProj * screenView * vec4(gl_Vertex.xyz, 1.0);
-	
+	vec4 vrtx = gl_Vertex + vec4(0.0, timeInfo.x / 10.0, 0.0, 0.0);
+	gl_Position = cameraProj * cameraBillboard * vec4(vrtx.xyz, 1.0);
 }
 	
 ]]
@@ -92,7 +79,7 @@ function widget:GetInfo()
 	date      = "2020",
 	license   = "GPL V2",
 	layer     = -99999990,
-	enabled   = true
+	enabled   = false
   }
 end
 

@@ -19,13 +19,13 @@ uniform mat4 projMat;
 
 out DataVS {
 	vec4 colAtt;
-	vec4 attrib0;
+	vec4 attrib1;
 };
 
 void main() {
 	gl_Position = gl_Vertex;
 	colAtt  = gl_Color;
-	attrib0 = gl_MultiTexCoord0;
+	attrib1 = gl_MultiTexCoord0;
 }
 ]]
 
@@ -44,12 +44,13 @@ layout (triangle_strip, max_vertices = 24) out;
 
 in DataVS {
 	vec4 colAtt;
-	vec4 attrib0;
+	vec4 attrib1;
 } dataIn[];
 
 out DataGS {
 	vec4 colAtt;
-	vec4 attrib0;
+	vec4 attrib0; //gl_Vertex
+	vec4 attrib1; //gl_MultiTexCoord0
 };
 
 // Z-; Z+ are bottom top planes of frustum
@@ -74,7 +75,8 @@ void GenericFrustum(mat4 worldMat, vec4 zMinModelCenterPos, vec4 zMaxModelCenter
 	{ \
 		gl_Position = frustumPoints[idx]; \
 		colAtt = dataIn[0].colAtt; \
-		attrib0 = dataIn[0].attrib0; \
+		attrib0 = gl_in[0].gl_Position; \
+		attrib1 = dataIn[0].attrib1; \
 		EmitVertex(); \
 	}
 
@@ -142,12 +144,12 @@ void GetConeBoundingShape(mat4 worldMat, vec4 modelBeamStartPos, float r, float 
 
 mat4 GetDirectionMatrix(vec3 dirNorm) {
 	const vec3 up = vec3(0, 1, 0);
-	
+
     vec3 zaxis = dirNorm;
     vec3 xaxis = normalize(cross(zaxis, up));
-	
+
 	xaxis = isnan(xaxis.x) ? vec3(1, 0, 0) : xaxis;
-	
+
     vec3 yaxis = cross(xaxis, zaxis);
 
     return mat4(
@@ -200,7 +202,7 @@ void main() {
 	else if (lightType == 2) { // //cone light
 		mat4 rotMat = GetDirectionMatrix(normalize(pos1));
 		mat4 trlMat = GetTranslationMatrix(pos0);
-		
+
 		mat4 worldMat = trlMat * rotMat;
 
 		GetConeBoundingShape(worldMat, startModelPos, r0, r1);
@@ -217,7 +219,8 @@ uniform vec2 viewPortSize;
 
 in DataGS {
 	vec4 colAtt;
-	vec4 attrib0;
+	vec4 attrib0; //gl_Vertex
+	vec4 attrib1; //gl_MultiTexCoord0
 };
 
 void main() {
@@ -312,7 +315,7 @@ local function PrepareLightDisplayLists()
 			gl.Vertex(2556, 100, 4753, 40)
 		end)
 	end)
-	
+
 	dlPoint = gl.CreateList( function()
 		gl.BeginEnd(GL.POINTS, function ()
 			gl.Color(1, 1, 1, 1)
@@ -327,7 +330,7 @@ local function PrepareLightDisplayLists()
 			gl.MultiTexCoord(0, 0, 1, 0, 60 / 360 * math.pi)
 			gl.Vertex(2595, 100, 4985, 40)
 		end)
-	end)	
+	end)
 end
 
 local GL_KEEP = 0x1E00

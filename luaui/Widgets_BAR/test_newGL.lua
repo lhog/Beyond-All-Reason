@@ -17,7 +17,31 @@ local testSmall = true
 local vsSrc = [[
 #version 150 compatibility
 
-//#extension ARB_explicit_uniform_location : require
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+
+#line 1023
+
+layout(std140, binding = 0) uniform UniformMatrixBuffer {
+	mat4 screenView;
+	mat4 screenProj;
+	mat4 screenViewProj;
+
+	mat4 cameraView;
+	mat4 cameraProj;
+	mat4 cameraViewProj;
+	mat4 cameraBillboard;
+
+	mat4 cameraViewInv;
+	mat4 cameraProjInv;
+	mat4 cameraViewProjInv;
+
+	mat4 shadowView;
+	mat4 shadowProj;
+	mat4 shadowViewProj;
+
+	//TODO: minimap matrices
+};
 
 uniform mat4 model;
 uniform mat4 view;
@@ -25,7 +49,8 @@ uniform mat4 proj;
 
 void main() {
 	gl_Position = proj * view * model * gl_Vertex;
-	//gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+	gl_Position = cameraViewProj * model * gl_Vertex;
+	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 }
 ]]
 
@@ -96,6 +121,7 @@ function widget:Finalize()
 	gl.DeleteShader(shader)
 end
 
+--[[
 function widget:DrawWorld()
 	local proj = gl.GetMatrix(); proj:CameraProjMatrix(0, false);
 	local view = gl.GetMatrix(); view:CameraViewMatrix(0, false);
@@ -103,8 +129,9 @@ function widget:DrawWorld()
 	--Spring.Echo(viewProj * {0, 0, 0, 1})
 	--Spring.Echo(viewProj:GetAsTable())
 end
+]]--
 
---[[
+
 local cnt = 0
 function widget:DrawWorld()
 	--Spring.Echo(gl.GetViewRange(0))
@@ -146,4 +173,3 @@ function widget:DrawWorld()
 
 	gl.PopMatrix()
 end
-]]--

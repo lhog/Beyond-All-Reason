@@ -3,14 +3,14 @@
 
 function widget:GetInfo()
   return {
-	name      = "Deferred rendering2",
+	name      = "Deferred rendering3",
 	version   = 3,
 	desc      = "Collects and renders point, cone and beam lights",
 	author    = "ivand",
 	date      = "2020",
 	license   = "GPL V2",
 	layer     = -99999990,
-	enabled   = true
+	enabled   = false
   }
 end
 
@@ -572,6 +572,9 @@ local function AddPointLight(startPos, radius, distAttRel, mainColor, edgeColor)
 	return AddLight(color0, color1, attrib0, attrib1)
 end
 
+local retainedLightsVAO
+local immediateLightsVAO
+
 local retainedLightsDL = nil
 local function PrepareRetainedLights(forceRetainedSearch)
 	if (not retainedLightsDLNeedsUpdate) and (not forceRetainedSearch) then
@@ -625,6 +628,7 @@ local function PrepareRetainedLights(forceRetainedSearch)
 	retainedLightsDLNeedsUpdate = false
 end
 
+local lightsDefVAOArray = {}
 local function RenderImmediateLights()
 	--Spring.Echo(#lightsDefArray)
 	--local immediateCnt = 0
@@ -647,6 +651,44 @@ local function RenderImmediateLights()
 		end
 	end)
 	--Spring.Echo("Immediate $count = ".. immediateCnt)
+	
+	table.setn(immediateLightsVAO, #lightsDefArray * 4 * 4)
+
+	for i = 1, #lightsDefArray do
+		local lightsDef = lightsDefArray[i]
+		if (not lightsDef.deleted) and (not lightsDef.retained) then
+			local color0 = lightsDef.color0
+			local color1 = lightsDef.color1
+			local attrib0 = lightsDef.attrib0
+			local attrib1 = lightsDef.attrib1
+			
+			local m = i - 1
+
+			lightsDefVAOArray[16 * m +  0] = attrib0[1]
+			lightsDefVAOArray[16 * m +  1] = attrib0[2]
+			lightsDefVAOArray[16 * m +  2] = attrib0[3]
+			lightsDefVAOArray[16 * m +  3] = attrib0[4]
+
+			lightsDefVAOArray[16 * m +  4] = attrib1[1]
+			lightsDefVAOArray[16 * m +  5] = attrib1[2]
+			lightsDefVAOArray[16 * m +  6] = attrib1[3]
+			lightsDefVAOArray[16 * m +  7] = attrib1[4]
+
+			lightsDefVAOArray[16 * m +  8] =  color0[1]
+			lightsDefVAOArray[16 * m +  9] =  color0[2]
+			lightsDefVAOArray[16 * m + 10] =  color0[3]
+			lightsDefVAOArray[16 * m + 11] =  color0[4]
+
+			lightsDefVAOArray[16 * m + 12] =  color1[1]
+			lightsDefVAOArray[16 * m + 13] =  color1[2]
+			lightsDefVAOArray[16 * m + 14] =  color1[3]
+			lightsDefVAOArray[16 * m + 15] =  color1[4]
+
+			--immediateCnt = immediateCnt + 1
+		end
+	end
+	
+	immediateLightsVAO:UploadVertexBulk(lightsDefVAOArray, 0)
 end
 
 local lightsList = {}
@@ -748,6 +790,23 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget(self)
 		return
 	end
+
+	retainedLightsVAO = gl.GetVAO(false)
+	immediateLightsVAO = gl.GetVAO(true)
+
+	retainedLightsVAO:SetVertexAttributes(32768, {
+		[0] = {name = "attrib0", size = 4},
+		[1] = {name = "attrib1", size = 4},
+		[2] = {name = "col0", size = 4},
+		[3] = {name = "col1", size = 4},
+	})
+
+	immediateLightsVAO:SetVertexAttributes(32768, {
+		[0] = {name = "attrib0", size = 4},
+		[1] = {name = "attrib1", size = 4},
+		[2] = {name = "col0", size = 4},
+		[3] = {name = "col1", size = 4},
+	})
 end
 
 function widget:Shutdown()

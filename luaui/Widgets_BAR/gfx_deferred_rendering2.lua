@@ -68,7 +68,8 @@ local GL_DECR_WRAP = 0x8508
 local SHAPE_DEBUG = false
 
 local LONG_ENOUGH = 2
-local RETAINED_VERIFICATION_FRERQUENCY = 5
+local RETAINED_VERIFICATION_FRERQUENCY = 30
+local LIGHTS_UPDATE_FRERQUENCY = 150
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -674,8 +675,8 @@ local function PrepareLightDisplayLists()
 
 	local cnt = 0
 
-	for x = 0, Game.mapSizeX, 256 do
-		for z = 0, Game.mapSizeZ, 256 do
+	for x = 0, Game.mapSizeX, 512 do
+		for z = 0, Game.mapSizeZ, 512 do
 
 			local gh = Spring.GetGroundHeight(x, z)
 			local lightID = AddConeLight({x, gh + 150, z}, {x,  gh - 50, z}, 0.5 * math.pi, 0.5, 0.5,
@@ -756,7 +757,7 @@ end
 
 function widget:GameFrame(gf)
 	gameFrame = gf
-	if gf % 15 == 0 then
+	if gf % LIGHTS_UPDATE_FRERQUENCY == 0 then
 		PrepareLightDisplayLists()
 	end
 	PrepareRetainedLights(gf % RETAINED_VERIFICATION_FRERQUENCY == 0)

@@ -68,7 +68,8 @@ local GL_DECR_WRAP = 0x8508
 local SHAPE_DEBUG = false
 
 local LONG_ENOUGH = 2
-local RETAINED_VERIFICATION_FRERQUENCY = 5
+local RETAINED_VERIFICATION_FRERQUENCY = 30
+local LIGHTS_UPDATE_FRERQUENCY = 150
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -100,8 +101,13 @@ local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 
 
 local vsSrc = [[
-#version 150 compatibility
-#line 150
+#version 330 compatibility
+#line 104
+
+layout (location = 0) in vec4 attr0;
+layout (location = 1) in vec4 attr1;
+layout (location = 2) in vec4 col0;
+layout (location = 3) in vec4 col1;
 
 uniform mat4 viewMat;
 uniform mat4 projMat;
@@ -113,16 +119,16 @@ out DataVS {
 };
 
 void main() {
-	gl_Position = gl_Vertex;
-	attrib1 = gl_MultiTexCoord0;
-	color0  = gl_Color;
-	color1  = gl_MultiTexCoord1;
+	gl_Position = attr0;
+	attrib1 = attr1;
+	color0  = col0;
+	color1  = col1;
 }
 ]]
 
 
 local gsSrc = [[
-#version 150 compatibility
+#version 330 compatibility
 #line 126
 
 layout (points) in;
@@ -333,7 +339,7 @@ void main() {
 ]]
 
 local fsSrc = [[
-#version 150 compatibility
+#version 330 compatibility
 #line 362
 
 uniform vec2 viewPortSize;
@@ -574,8 +580,10 @@ end
 
 local retainedLightsVAO
 local immediateLightsVAO
+local immediateLightsVAOs = {}
 
-local retainedLightsDL = nil
+local lightsDefRetainedVAOArraySize = 0
+local lightsDefRetainedVAOArray = {}
 local function PrepareRetainedLights(forceRetainedSearch)
 	if (not retainedLightsDLNeedsUpdate) and (not forceRetainedSearch) then
 		return
@@ -597,41 +605,60 @@ local function PrepareRetainedLights(forceRetainedSearch)
 		return
 	end
 
-	if retainedLightsDL then
-		glDeleteList(retainedLightsDL)
-		retainedLightsDL = nil
+	--retainedLightsDL
+	--retainedLightsVAO
+	lightsDefRetainedVAOArraySize = 0
+
+	for i = 1, #lightsDefArray do
+		local lightsDef = lightsDefArray[i]
+
+		--not deleted, not retained yet, lives long enough
+		if ((not lightsDef.deleted) or (not lightsDef.retained)) and (gameFrame - lightsDef.gameFrame >= LONG_ENOUGH) then
+			lightsDef.retained = true
+
+			local color0 = lightsDef.color0
+			local color1 = lightsDef.color1
+			local attrib0 = lightsDef.attrib0
+			local attrib1 = lightsDef.attrib1
+
+			local m = i - 1
+
+			lightsDefRetainedVAOArray[16 * m +  1] = attrib0[1]
+			lightsDefRetainedVAOArray[16 * m +  2] = attrib0[2]
+			lightsDefRetainedVAOArray[16 * m +  3] = attrib0[3]
+			lightsDefRetainedVAOArray[16 * m +  4] = attrib0[4]
+
+			lightsDefRetainedVAOArray[16 * m +  5] = attrib1[1]
+			lightsDefRetainedVAOArray[16 * m +  6] = attrib1[2]
+			lightsDefRetainedVAOArray[16 * m +  7] = attrib1[3]
+			lightsDefRetainedVAOArray[16 * m +  8] = attrib1[4]
+
+			lightsDefRetainedVAOArray[16 * m +  9] =  color0[1]
+			lightsDefRetainedVAOArray[16 * m + 10] =  color0[2]
+			lightsDefRetainedVAOArray[16 * m + 11] =  color0[3]
+			lightsDefRetainedVAOArray[16 * m + 12] =  color0[4]
+
+			lightsDefRetainedVAOArray[16 * m + 13] =  color1[1]
+			lightsDefRetainedVAOArray[16 * m + 14] =  color1[2]
+			lightsDefRetainedVAOArray[16 * m + 15] =  color1[3]
+			lightsDefRetainedVAOArray[16 * m + 16] =  color1[4]
+			
+			lightsDefRetainedVAOArraySize = lightsDefRetainedVAOArraySize + 1
+		end
 	end
-
-	retainedLightsDL = glCreateList(function()
-		glBeginEnd(GL_POINTS, function ()
-			for i = 1, #lightsDefArray do
-				local lightsDef = lightsDefArray[i]
-
-				--not deleted, not retained yet, lives long enough
-				if ((not lightsDef.deleted) or (not lightsDef.retained)) and (gameFrame - lightsDef.gameFrame >= LONG_ENOUGH) then
-					lightsDef.retained = true
-
-					local color0 = lightsDef.color0
-					local color1 = lightsDef.color1
-					local attrib0 = lightsDef.attrib0
-					local attrib1 = lightsDef.attrib1
-
-					glColor(color0[1], color0[2], color0[3], color0[4])
-					glMultiTexCoord(1, color1[1], color1[2], color1[3], color1[4])
-					glMultiTexCoord(0, attrib1[1], attrib1[2], attrib1[3],  attrib1[4])
-					glVertex(attrib0[1], attrib0[2], attrib0[3],  attrib0[4])
-				end
-			end
-		end)
-	end)
+	
+	retainedLightsVAO:UploadVertexBulk(lightsDefRetainedVAOArray, 0)
+	--Spring.Echo("PrepareRetainedLights", Spring.GetGameFrame())
 
 	retainedLightsDLNeedsUpdate = false
 end
 
-local lightsDefVAOArray = {}
+local lightsDefImmediateVAOArray = {}
+local lightsDefImmediateVAOArraySize = 0
 local function RenderImmediateLights()
 	--Spring.Echo(#lightsDefArray)
 	--local immediateCnt = 0
+	--[[
 	glBeginEnd(GL_POINTS, function ()
 		for i = 1, #lightsDefArray do
 			local lightsDef = lightsDefArray[i]
@@ -650,9 +677,11 @@ local function RenderImmediateLights()
 			end
 		end
 	end)
+	]]--
 	--Spring.Echo("Immediate $count = ".. immediateCnt)
 	
-	table.setn(immediateLightsVAO, #lightsDefArray * 4 * 4)
+	--table.setn(lightsDefVAOArray, #lightsDefArray * 4 * 4)
+	lightsDefImmediateVAOArraySize = 0
 
 	for i = 1, #lightsDefArray do
 		local lightsDef = lightsDefArray[i]
@@ -664,31 +693,43 @@ local function RenderImmediateLights()
 			
 			local m = i - 1
 
-			lightsDefVAOArray[16 * m +  0] = attrib0[1]
-			lightsDefVAOArray[16 * m +  1] = attrib0[2]
-			lightsDefVAOArray[16 * m +  2] = attrib0[3]
-			lightsDefVAOArray[16 * m +  3] = attrib0[4]
+			lightsDefImmediateVAOArray[16 * m +  1] = attrib0[1]
+			lightsDefImmediateVAOArray[16 * m +  2] = attrib0[2]
+			lightsDefImmediateVAOArray[16 * m +  3] = attrib0[3]
+			lightsDefImmediateVAOArray[16 * m +  4] = attrib0[4]
 
-			lightsDefVAOArray[16 * m +  4] = attrib1[1]
-			lightsDefVAOArray[16 * m +  5] = attrib1[2]
-			lightsDefVAOArray[16 * m +  6] = attrib1[3]
-			lightsDefVAOArray[16 * m +  7] = attrib1[4]
+			lightsDefImmediateVAOArray[16 * m +  5] = attrib1[1]
+			lightsDefImmediateVAOArray[16 * m +  6] = attrib1[2]
+			lightsDefImmediateVAOArray[16 * m +  7] = attrib1[3]
+			lightsDefImmediateVAOArray[16 * m +  8] = attrib1[4]
 
-			lightsDefVAOArray[16 * m +  8] =  color0[1]
-			lightsDefVAOArray[16 * m +  9] =  color0[2]
-			lightsDefVAOArray[16 * m + 10] =  color0[3]
-			lightsDefVAOArray[16 * m + 11] =  color0[4]
+			lightsDefImmediateVAOArray[16 * m +  9] =  color0[1]
+			lightsDefImmediateVAOArray[16 * m + 10] =  color0[2]
+			lightsDefImmediateVAOArray[16 * m + 11] =  color0[3]
+			lightsDefImmediateVAOArray[16 * m + 12] =  color0[4]
 
-			lightsDefVAOArray[16 * m + 12] =  color1[1]
-			lightsDefVAOArray[16 * m + 13] =  color1[2]
-			lightsDefVAOArray[16 * m + 14] =  color1[3]
-			lightsDefVAOArray[16 * m + 15] =  color1[4]
+			lightsDefImmediateVAOArray[16 * m + 13] =  color1[1]
+			lightsDefImmediateVAOArray[16 * m + 14] =  color1[2]
+			lightsDefImmediateVAOArray[16 * m + 15] =  color1[3]
+			lightsDefImmediateVAOArray[16 * m + 16] =  color1[4]
 
 			--immediateCnt = immediateCnt + 1
+			lightsDefImmediateVAOArraySize = lightsDefImmediateVAOArraySize + 1
 		end
 	end
 	
-	immediateLightsVAO:UploadVertexBulk(lightsDefVAOArray, 0)
+	--Spring.Echo("#lightsDefImmediateVAOArray=", #lightsDefImmediateVAOArray, #lightsDefArray)
+	
+	local df = Spring.GetDrawFrame()
+	local tf, pf = (df + 1) % 3 + 1, df % 3 + 1
+	
+	--Spring.Echo("df, tf, pf  ", df, tf, pf)
+	
+	--immediateLightsVAOs[tf]:UploadVertexBulk(lightsDefImmediateVAOArray, 0)
+	--immediateLightsVAOs[pf]:DrawArrays(GL_POINTS, lightsDefImmediateVAOArraySize)
+
+	--immediateLightsVAO:UploadVertexBulk(lightsDefImmediateVAOArray, 0)
+	--immediateLightsVAO:DrawArrays(GL_POINTS, lightsDefImmediateVAOArraySize)
 end
 
 local lightsList = {}
@@ -716,8 +757,8 @@ local function PrepareLightDisplayLists()
 
 	local cnt = 0
 
-	for x = 0, Game.mapSizeX, 256 do
-		for z = 0, Game.mapSizeZ, 256 do
+	for x = 0, Game.mapSizeX, 512 do
+		for z = 0, Game.mapSizeZ, 512 do
 
 			local gh = Spring.GetGroundHeight(x, z)
 			local lightID = AddConeLight({x, gh + 150, z}, {x,  gh - 50, z}, 0.5 * math.pi, 0.5, 0.5,
@@ -791,19 +832,47 @@ function widget:Initialize()
 		return
 	end
 
-	retainedLightsVAO = gl.GetVAO(false)
+	retainedLightsVAO = gl.GetVAO(true)
 	immediateLightsVAO = gl.GetVAO(true)
+	
+	immediateLightsVAOs = {
+		gl.GetVAO(true),
+		gl.GetVAO(true),
+		gl.GetVAO(true),
+	}
+	
+	immediateLightsVAOs[1]:SetVertexAttributes(32768, {
+		[0] = {name = "attr0", size = 4},
+		[1] = {name = "attr1", size = 4},
+		[2] = {name = "col0", size = 4},
+		[3] = {name = "col1", size = 4},
+	})
+
+	immediateLightsVAOs[2]:SetVertexAttributes(32768, {
+		[0] = {name = "attr0", size = 4},
+		[1] = {name = "attr1", size = 4},
+		[2] = {name = "col0", size = 4},
+		[3] = {name = "col1", size = 4},
+	})
+	
+	immediateLightsVAOs[3]:SetVertexAttributes(32768, {
+		[0] = {name = "attr0", size = 4},
+		[1] = {name = "attr1", size = 4},
+		[2] = {name = "col0", size = 4},
+		[3] = {name = "col1", size = 4},
+	})
+
 
 	retainedLightsVAO:SetVertexAttributes(32768, {
-		[0] = {name = "attrib0", size = 4},
-		[1] = {name = "attrib1", size = 4},
+		[0] = {name = "attr0", size = 4},
+		[1] = {name = "attr1", size = 4},
 		[2] = {name = "col0", size = 4},
 		[3] = {name = "col1", size = 4},
 	})
 
 	immediateLightsVAO:SetVertexAttributes(32768, {
-		[0] = {name = "attrib0", size = 4},
-		[1] = {name = "attrib1", size = 4},
+		[0] = {name = "attr0", size = 4},
+		[1] = {name = "attr1", size = 4},
 		[2] = {name = "col0", size = 4},
 		[3] = {name = "col1", size = 4},
 	})
@@ -815,7 +884,7 @@ end
 
 function widget:GameFrame(gf)
 	gameFrame = gf
-	if gf % 15 == 0 then
+	if gf % LIGHTS_UPDATE_FRERQUENCY == 0 then
 		PrepareLightDisplayLists()
 	end
 	PrepareRetainedLights(gf % RETAINED_VERIFICATION_FRERQUENCY == 0)
@@ -847,9 +916,11 @@ function widget:DrawWorld()
 		glDepthTest(GL_LEQUAL)
 		glCulling(GL_BACK)
 
-		if retainedLightsDL then
-			glCallList(retainedLightsDL)
-		end
+		--if retainedLightsDL then
+			--glCallList(retainedLightsDL)
+		--end
+		retainedLightsVAO:DrawArrays(GL_POINTS, lightsDefRetainedVAOArraySize)
+		
 		RenderImmediateLights()
 	end)
 
